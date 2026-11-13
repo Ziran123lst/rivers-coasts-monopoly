@@ -68,6 +68,13 @@ h1{color:#fff; text-align:center; margin:6px 0 2px; font-size:clamp(20px,3vw,30p
 .sq.challenge::after{content:"★"; position:absolute; top:3px; right:5px; color:var(--gold);
   font-size:12px; text-shadow:0 0 4px rgba(0,0,0,.6);}
 .sq .big{font-size:14px; font-weight:800; text-shadow:0 1px 3px rgba(0,0,0,.6);}
+/* 難度徽章 */
+.sq .diff{position:absolute; top:3px; left:5px; font-size:8px; font-weight:800;
+  padding:1px 5px; border-radius:8px; letter-spacing:.3px; color:#fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.45);}
+.sq .diff.d1{background:linear-gradient(135deg,#3aa86b,#2e8a59);}
+.sq .diff.d2{background:linear-gradient(135deg,#d39a2e,#b97f1c);}
+.sq .diff.d3{background:linear-gradient(135deg,#c0492f,#a2361f);}
 /* 中央 */
 #center{position:absolute; left:14.28%; top:14.28%; width:57.14%; height:57.14%;
   background:linear-gradient(160deg,rgba(244,248,251,.97),rgba(230,240,246,.95));
@@ -294,19 +301,22 @@ const ICONS = {
   spit: `<svg viewBox="0 0 48 48"><rect x="0" y="0" width="48" height="48" fill="#2c5f8a"/>
     <path d="M4 20 Q16 26 28 22 Q36 19 44 24" fill="none" stroke="#d9b25a" stroke-width="6" stroke-linecap="round"/>
     <path d="M4 18 Q16 24 28 20" fill="none" stroke="#e8cf8a" stroke-width="2" opacity=".7"/></svg>`,
-  // 灣口沙洲
-  bar: `<svg viewBox="0 0 48 48"><rect x="0" y="0" width="48" height="48" fill="#2c5f8a"/>
-    <path d="M4 8 Q24 14 44 8" fill="none" stroke="#d9b25a" stroke-width="6" stroke-linecap="round"/>
-    <path d="M4 10 Q24 16 44 10" fill="none" stroke="#e8cf8a" stroke-width="2" opacity=".7"/>
-    <ellipse cx="24" cy="34" rx="16" ry="6" fill="#7fa8c4" opacity=".7"/></svg>`,
   // 潟湖
   lagoon: `<svg viewBox="0 0 48 48"><rect x="0" y="0" width="48" height="48" fill="#2c5f8a"/>
     <path d="M4 14 Q24 20 44 14" fill="none" stroke="#d9b25a" stroke-width="5" stroke-linecap="round"/>
     <ellipse cx="24" cy="34" rx="16" ry="8" fill="#9fd0ec"/></svg>`,
-  // 三角港
-  estuary: `<svg viewBox="0 0 48 48"><path d="M6 6 L18 6 L24 44 L30 6 L42 6 Z" fill="#9fd0ec" opacity=".4" stroke="#2c5f8a" stroke-width="1.5"/>
-    <path d="M14 6 Q20 30 24 44 M34 6 Q28 30 24 44" fill="none" stroke="#7fa8c4" stroke-width="2"/>
-    <path d="M6 42 H42" stroke="#2c5f8a" stroke-width="2"/></svg>`,
+  // 連島沙洲（島嶼經沙堤連接陸地）
+  tombolo: `<svg viewBox="0 0 48 48"><rect x="0" y="0" width="48" height="48" fill="#2c5f8a"/>
+    <path d="M4 14 H18 V30 H4 Z" fill="#3a6e94"/>
+    <path d="M30 10 H44 V26 H30 Z" fill="#3a6e94"/>
+    <path d="M18 22 Q24 18 30 18" fill="none" stroke="#d9b25a" stroke-width="6" stroke-linecap="round"/>
+    <path d="M18 20 Q24 16 30 16" fill="none" stroke="#e8cf8a" stroke-width="2" opacity=".7"/></svg>`,
+  // 海積平原（平緩堆積平原）
+  marineplain: `<svg viewBox="0 0 48 48"><rect x="0" y="0" width="48" height="48" fill="#2c5f8a"/>
+    <path d="M0 30 H48 V34 H0 Z" fill="#7fa8c4"/>
+    <path d="M0 34 Q12 30 24 34 T48 34 V38 H0 Z" fill="#9fc0d8"/>
+    <path d="M0 38 H48 V48 H0 Z" fill="#b9a07a"/>
+    <path d="M6 42 H20 M28 43 H40" stroke="#8a7a5a" stroke-width="1.5" opacity=".7"/></svg>`,
 };
 // 角落 / 特殊格圖示（emoji 造型）
 const SPECIAL_ICONS = {
@@ -326,62 +336,146 @@ window.SPECIAL_ICONS = SPECIAL_ICONS;
 // 棋盤定義（與 server 一致），含圖示鍵
 const BOARD = [
   {i:0, r:6,c:6, type:"go", name:"起點", icon:"go"},
-  {i:1, r:6,c:5, type:"q", cat:"upper", name:"V形谷", icon:"vvalley"},
-  {i:2, r:6,c:4, type:"q", cat:"upper", name:"峽谷", icon:"gorge"},
-  {i:3, r:6,c:3, type:"q", cat:"upper", name:"下蝕", icon:"downcut", ch:true},
-  {i:4, r:6,c:2, type:"q", cat:"middle", name:"河曲", icon:"meander"},
-  {i:5, r:6,c:1, type:"q", cat:"middle", name:"瀑布", icon:"waterfall"},
+  {i:1, r:6,c:5, type:"q", cat:"upper", d:1, name:"V形谷", icon:"vvalley"},
+  {i:2, r:6,c:4, type:"q", cat:"upper", d:2, name:"峽谷", icon:"gorge"},
+  {i:3, r:6,c:3, type:"q", cat:"upper", d:3, ch:true, name:"下蝕", icon:"downcut"},
+  {i:4, r:6,c:2, type:"q", cat:"middle", d:1, name:"河曲", icon:"meander"},
+  {i:5, r:6,c:1, type:"q", cat:"middle", d:2, name:"瀑布", icon:"waterfall"},
   {i:6, r:6,c:0, type:"chance", name:"機會", icon:"chance"},
-  {i:7, r:5,c:0, type:"q", cat:"lower", name:"沖積平原", icon:"floodplain"},
-  {i:8, r:4,c:0, type:"q", cat:"lower", name:"牛軛湖", icon:"oxbow"},
-  {i:9, r:3,c:0, type:"q", cat:"lower", name:"三角洲", icon:"delta", ch:true},
-  {i:10,r:2,c:0, type:"q", cat:"process", name:"搬運作用", icon:"transport"},
-  {i:11,r:1,c:0, type:"q", cat:"process", name:"堆積作用", icon:"deposit"},
+  {i:7, r:5,c:0, type:"q", cat:"lower", d:1, name:"沖積平原", icon:"floodplain"},
+  {i:8, r:4,c:0, type:"q", cat:"lower", d:2, name:"牛軛湖", icon:"oxbow"},
+  {i:9, r:3,c:0, type:"q", cat:"lower", d:3, ch:true, name:"三角洲", icon:"delta"},
+  {i:10,r:2,c:0, type:"q", cat:"process", d:1, name:"搬運作用", icon:"transport"},
+  {i:11,r:1,c:0, type:"q", cat:"process", d:2, name:"堆積作用", icon:"deposit"},
   {i:12,r:0,c:0, type:"rest", name:"學院", icon:"rest"},
-  {i:13,r:0,c:1, type:"q", cat:"ero", name:"海蝕崖", icon:"cliff"},
-  {i:14,r:0,c:2, type:"q", cat:"ero", name:"海蝕洞", icon:"cave"},
-  {i:15,r:0,c:3, type:"q", cat:"ero", name:"海蝕拱", icon:"arch", ch:true},
-  {i:16,r:0,c:4, type:"q", cat:"ero", name:"海蝕柱", icon:"stack"},
-  {i:17,r:0,c:5, type:"q", cat:"ero", name:"海蝕平台", icon:"platform"},
+  {i:13,r:0,c:1, type:"q", cat:"ero", d:1, name:"海蝕崖", icon:"cliff"},
+  {i:14,r:0,c:2, type:"q", cat:"ero", d:2, name:"海蝕洞", icon:"cave"},
+  {i:15,r:0,c:3, type:"q", cat:"ero", d:3, ch:true, name:"海蝕拱", icon:"arch"},
+  {i:16,r:0,c:4, type:"q", cat:"ero", d:2, name:"海蝕柱", icon:"stack"},
+  {i:17,r:0,c:5, type:"q", cat:"ero", d:1, name:"海蝕平台", icon:"platform"},
   {i:18,r:0,c:6, type:"fate", name:"命運", icon:"fate"},
-  {i:19,r:1,c:6, type:"q", cat:"dep", name:"海灘", icon:"beach"},
-  {i:20,r:2,c:6, type:"q", cat:"dep", name:"沙咀", icon:"spit"},
-  {i:21,r:3,c:6, type:"q", cat:"dep", name:"灣口沙洲", icon:"bar"},
-  {i:22,r:4,c:6, type:"q", cat:"dep", name:"潟湖", icon:"lagoon", ch:true},
-  {i:23,r:5,c:6, type:"q", cat:"dep", name:"三角港", icon:"estuary"},
+  {i:19,r:1,c:6, type:"q", cat:"dep", d:1, name:"海灘", icon:"beach"},
+  {i:20,r:2,c:6, type:"q", cat:"dep", d:2, name:"沙咀", icon:"spit"},
+  {i:21,r:3,c:6, type:"q", cat:"dep", d:2, name:"連島沙洲", icon:"tombolo"},
+  {i:22,r:4,c:6, type:"q", cat:"dep", d:3, ch:true, name:"潟湖", icon:"lagoon"},
+  {i:23,r:5,c:6, type:"q", cat:"dep", d:3, name:"海積平原", icon:"marineplain"},
 ];
+
+// 難度設定：AI 答對機率與得分
+const DIFF = {
+  1:{pass:0.90, right:20, wrong:5,  tag:"① 低", title:"📘 基礎題"},
+  2:{pass:0.60, right:30, wrong:10, tag:"② 中", title:"📗 進階題"},
+  3:{pass:0.30, right:40, wrong:10, tag:"③ 高", title:"⭐ 挑戰題"}
+};
 
 const PALETTE = ["#2a7f9e","#3a7bd5","#7a5fb5","#27ae60","#e0823c","#c0392b"];
 const TOKENS = ["甲","乙","丙","丁"];
 
 // 單機題庫（前端內嵌，離線可用）
 const Q = {
-  upper:[{q:"河流上游坡度大、流速快，何種侵蝕作用最強？",o:["側蝕","下蝕（垂直侵蝕）","溶蝕","風蝕"],a:1,ex:"上游坡陡流急，以下蝕為主，深切河谷形成 V 形谷。"},
-  {q:"下列哪項是河流上游常見的地貌？",o:["V形谷","沖積平原","三角洲","潟湖"],a:0,ex:"V 形谷是上游下蝕強烈的產物。"},
-  {q:"峽谷（gorge）多形成於？",o:["下游平原","硬岩區且下蝕強烈","河口三角洲","海灘"],a:1,ex:"峽谷常見於硬岩區，河流持續下切而成。"},
-  {q:"關於河流上游，下列何者正確？",o:["側蝕比下蝕強","以堆積為主","下蝕強、搬運力大、多V形谷","河谷寬闊"],a:2,ex:"上游下蝕強、流速快，河谷呈 V 形。"}],
-  middle:[{q:"河曲（meander）的發育主要與何作用有關？",o:["下蝕","側蝕","溶蝕","堆積"],a:1,ex:"中游側蝕增強，凹岸侵蝕、凸岸堆積。"},
-  {q:"瀑布（waterfall）常見於？",o:["硬岩與軟岩交界處","兩河河口","海蝕平台","沖積平原中央"],a:0,ex:"硬岩覆於軟岩之上，軟岩被侵蝕後形成落差。"},
-  {q:"河曲頸被截直後會形成？",o:["三角洲","牛軛湖","海蝕柱","峽谷"],a:1,ex:"河曲頸被切斷，原有河道廢棄成牛軛湖。"}],
-  lower:[{q:"三角洲在何處形成？",o:["河流上游","河流入海口","山區峽谷","海蝕崖"],a:1,ex:"河流入海口流速驟減，泥沙堆積成三角洲。"},
-  {q:"牛軛湖是怎樣形成的？",o:["海浪堆積","河曲頸被截直切斷","火山噴發","冰川刨蝕"],a:1,ex:"河曲頸被截直後，彎曲河道孤立成牛軛湖。"},
-  {q:"關於河流下游，下列何者錯誤？",o:["坡度小","流速慢","堆積作用強","以下蝕為主"],a:3,ex:"下游坡緩流慢，以側蝕與堆積為主。"}],
-  process:[{q:"河流以懸浮方式搬運的是？",o:["大型漂石","泥沙與細微粒","卵石","溶解的礦物"],a:1,ex:"懸移搬運泥沙等細微粒；溶解物質屬溶液搬運。"},
-  {q:"下列何者屬溶液搬運？",o:["跳移","懸移","溶解物質隨水運走","拖移"],a:2,ex:"可溶性礦物溶於水隨流搬運。"},
-  {q:"河流何時發生堆積作用？",o:["流速加快","搬運能力下降（流速減慢）","降雨量增加","坡度變大"],a:1,ex:"流速減慢、搬運力下降，泥沙便堆積。"},
-  {q:"常見的海岸防護工程包括？",o:["海堤、防波堤、拋石","興建水壩","砍伐林木","抽乾地下水"],a:0,ex:"海堤、防波堤與拋石都是常見的海岸防護工程。"}],
-  ero:[{q:"海蝕崖因何形成？",o:["河流堆積","波浪侵蝕海岸基部","風沙堆積","冰川"],a:1,ex:"波浪侵蝕海崖基部，上部崩塌形成海蝕崖。"},
-  {q:"海蝕洞→拱→柱的順序為？",o:["洞→拱→柱","柱→拱→洞","拱→洞→柱","同時"],a:0,ex:"海蝕洞貫穿成拱，拱頂崩塌剩柱。"},
-  {q:"海蝕平台是？",o:["河流堆積平原","海蝕崖前退潮露出的平坦岩台","沙咀","潟湖"],a:1,ex:"海蝕崖後退，前方留下退潮時露出的平坦岩台。"},
-  {q:"關於海蝕地貌，何者正確？",o:["海蝕柱由海積形成","海蝕拱崩塌後形成海蝕柱","海蝕平台屬堆積地貌","海蝕崖由河流造成"],a:1,ex:"海蝕拱頂崩塌後殘留的獨立岩柱即海蝕柱。"},
-  {q:"下列哪項不屬侵蝕地貌？",o:["海蝕崖","海蝕洞","海蝕柱","沙咀"],a:3,ex:"沙咀是海岸堆積地貌。"},
-  {q:"東平洲以何種地貌著名？",o:["火山岩柱","頁岩千層糕地貌與海蝕平台","珊瑚礁","冰川U谷"],a:1,ex:"東平洲以沉積岩千層糕及海蝕平台聞名。"}],
-  dep:[{q:"沙咀屬哪類地貌？",o:["侵蝕","堆積","火山","構造"],a:1,ex:"沙咀由沿岸漂沙堆積延伸入海而成。"},
-  {q:"沿岸漂沙主要由何推動？",o:["垂直入射的波浪","斜向入射的波浪","潮汐漲退","洋流主導"],a:1,ex:"波浪斜向入射，泥沙沿岸搬運。"},
-  {q:"潟湖與外海間通常由何分隔？",o:["海蝕崖","沙咀或灣口沙洲","火山口","三角洲"],a:1,ex:"沙咀或灣口沙洲將潟湖與外海隔開。"},
-  {q:"關於堆積海岸，何者錯誤？",o:["沙咀由沿岸漂沙形成","灣口沙洲封閉河口成潟湖","海蝕平台是典型堆積地貌","海灘由波浪堆積而成"],a:2,ex:"海蝕平台是侵蝕地貌。"},
-  {q:"維多利亞港是？",o:["河流上游峽谷","天然良港（沉沒河谷／三角港）","火山口湖","牛軛湖"],a:1,ex:"維多利亞港是沉沒河谷形成的天然良港。"},
-  {q:"何者常見於河流入海口？",o:["V形谷","三角洲","海蝕拱","瀑布"],a:1,ex:"三角洲出現在河流入海口。"}]
+  upper: {
+    1:[
+      {q:"河流上游坡陡流急，何種侵蝕作用最顯著？",o:["側蝕","下蝕（垂直侵蝕）","溶蝕","風蝕"],a:1,ex:"上游坡度大、流速快，以下蝕為主，深切形成 V 形谷。",past:true},
+      {q:"下列哪項是河流上游最常見的地貌？",o:["V形谷","沖積平原","三角洲","潟湖"],a:0,ex:"V 形谷是上游下蝕強烈的產物。"},
+      {q:"有關河流上游的特徵，何者正確？",o:["河谷寬闊","坡度小、流速慢","下蝕強、搬運力大","以堆積為主"],a:2,ex:"上游坡陡流急，下蝕強、搬運力大，河谷呈 V 形。"}
+    ],
+    2:[
+      {q:"峽谷（gorge）多形成於何處？",o:["下游沖積平原","硬岩區且下蝕強烈","河口三角洲","海蝕平台"],a:1,ex:"峽谷常見於硬岩區，河流持續下切而成。",past:true},
+      {q:"河流的『下蝕』（vertical erosion）會使河谷出現何種變化？",o:["河谷變寬","河床加深、河谷變深","坡度變緩","堆積加強"],a:1,ex:"下蝕使河床與河谷向下加深。"},
+      {q:"下列關於河流上游搬運物的描述，何者正確？",o:["以細沙為主","礫石、卵石等大顆粒為主","以溶解物質為主","幾乎不搬運"],a:1,ex:"上游流速快、搬運力強，以大顆粒礫石、卵石為主。"}
+    ],
+    3:[
+      {q:"河流襲奪（river capture）發生時，下列何者正確？",o:["被襲奪河的下游水量增加","襲奪河切穿分水嶺奪走鄰河上游","河口三角洲擴大","下游出現牛軛湖"],a:1,ex:"河流襲奪指一河切穿分水嶺，奪走鄰河上游的水量。",past:true},
+      {q:"有關『河流襲奪』的地形證據，何者正確？",o:["風口（wind gap）是昔日河道遺跡","三角洲是襲奪證據","牛軛湖必現於上游","海蝕平台為證"],a:0,ex:"被遺棄的風口（wind gap）是河流襲奪的重要地形證據。"},
+      {q:"河流的縱剖面（long profile）通常呈現？",o:["平緩直線","凹形曲線，上游陡下游緩","凸形曲線","無規律"],a:1,ex:"河流縱剖面多呈凹形，上游坡度大、下游坡度小。"}
+    ]
+  },
+  middle: {
+    1:[
+      {q:"河曲（meander）的發育主要與何種作用有關？",o:["下蝕","側蝕","溶蝕","堆積"],a:1,ex:"中游側蝕增強，凹岸侵蝕、凸岸堆積，形成河曲。",past:true},
+      {q:"河曲處，侵蝕主要發生在？",o:["凸岸","凹岸","河心","兩岸相同"],a:1,ex:"側蝕使凹岸受蝕、凸岸堆積。"},
+      {q:"中游河流的河谷形態通常為？",o:["V形谷","寬谷，河谷較寬闊","峽谷","無河谷"],a:1,ex:"中游坡度減小，側蝕使河谷加寬。"}
+    ],
+    2:[
+      {q:"瀑布（waterfall）常見於？",o:["硬岩覆於軟岩之上的交界","兩河河口","海蝕平台","沖積平原中央"],a:0,ex:"硬岩覆於軟岩之上，軟岩被蝕後形成落差成瀑布。",past:true},
+      {q:"瀑布形成後，會因為軟岩持續被蝕而逐漸？",o:["向上游後退（recede）","向河口移動","消失變成三角洲","不再變化"],a:0,ex:"瀑布會向上游方向後退（recede）。"},
+      {q:"側蝕作用最強的河段是？",o:["上游峽谷","中游彎曲河段","河口","源頭"],a:1,ex:"中游彎曲（河曲）河段側蝕最強。"}
+    ],
+    3:[
+      {q:"河曲頸被截直（cut-off）後形成？",o:["三角洲","牛軛湖","海蝕柱","峽谷"],a:1,ex:"河曲頸被切斷，原有河道廢棄成牛軛湖。",past:true},
+      {q:"有關『自由曲流』，何者正確？",o:["只見於上游","多見於下游寬廣沖積平原，河道可大幅擺動","只在海岸出現","與側蝕無關"],a:1,ex:"自由曲流多見於下游寬廣平原，側蝕使河道大幅擺動。"},
+      {q:"河曲凹岸與凸岸相比，下列何者正確？",o:["凸岸流速快、以侵蝕為主","凹岸流速快、以侵蝕為主","兩岸均堆積","凹岸堆積、凸岸侵蝕"],a:1,ex:"凹岸因離心力流速快，以侵蝕為主；凸岸堆積。"}
+    ]
+  },
+  lower: {
+    1:[
+      {q:"三角洲（delta）在何處形成？",o:["河流上游","河流入海口","山區峽谷","海蝕崖"],a:1,ex:"入海口流速驟減，泥沙堆積成三角洲。",past:true},
+      {q:"下游河流的主要作用為？",o:["以下蝕為主","以側蝕與堆積為主","以溶蝕為主","無作用"],a:1,ex:"下游坡緩流慢，以側蝕與堆積為主。"},
+      {q:"下列關於下游的敘述，何者正確？",o:["坡度大、流速快","河谷窄、以下蝕為主","坡度小、流速慢、堆積強","無泥沙特徵"],a:2,ex:"下游坡度小、流速慢，堆積作用強。"}
+    ],
+    2:[
+      {q:"牛軛湖（oxbow lake）的形成與下列何者有關？",o:["河流堆積","河曲頸截直","海浪侵蝕","冰川作用"],a:1,ex:"河曲頸截直後，彎曲河道孤立成牛軛湖。",past:true},
+      {q:"下列何種條件有利三角洲發育？",o:["河流搬運量少","入海口潮汐、波浪作用強烈","河流搬運量大且河口平靜","下游坡度大"],a:2,ex:"搬運量大且河口平靜（波浪、潮汐弱）有利三角洲堆積。"},
+      {q:"沖積平原（floodplain）主要由何作用形成？",o:["火山噴發","河流側蝕與氾濫堆積","海蝕","風蝕"],a:1,ex:"沖積平原由河流側蝕拓寬與氾濫堆積而成。"}
+    ],
+    3:[
+      {q:"有關『下游河流』與人類活動，何者正確？",o:["下游坡陡流急，不利航運","下游平原土壤肥沃，多農業與聚落","下游無堆積作用","下游以侵蝕為主"],a:1,ex:"下游平原由堆積而成，土壤肥沃、地形平坦，多農業與聚落。",past:true},
+      {q:"下列何者會阻礙三角洲發育？",o:["河流搬運量大","河口波浪、潮汐強烈，泥沙被帶走","河口平靜","泥沙顆粒細"],a:1,ex:"河口波浪、潮汐強烈會把泥沙帶走，不利三角洲堆積。"},
+      {q:"『牛軛湖』的敘述，何者錯誤？",o:["由河曲頸截直形成","與主流不再相連","多見於上游峽谷","是廢棄河道"],a:2,ex:"牛軛湖多見於下游平原，非上游峽谷。"}
+    ]
+  },
+  process: {
+    1:[
+      {q:"河流以懸浮（懸移）方式搬運的主要是？",o:["大型漂石","泥沙與細微粒","卵石","溶解的礦物"],a:1,ex:"懸移搬運泥沙等細微粒；溶解物質屬溶液搬運。",past:true},
+      {q:"下列何者屬於溶液（溶解）搬運？",o:["跳移","懸移","溶解物質隨水運走","拖移"],a:2,ex:"可溶性礦物溶於水隨流搬運，稱溶液搬運。"},
+      {q:"河流何時發生堆積作用？",o:["流速加快、搬運力上升","搬運能力下降（流速減慢）","降雨量增加","坡度變大"],a:1,ex:"流速減慢、搬運力下降，泥沙便堆積。"}
+    ],
+    2:[
+      {q:"河流搬運方式不包括下列何者？",o:["拖移（底載）","懸移","溶液搬運","板塊搬運"],a:3,ex:"河流搬運有拖移、懸移、溶液三種，無『板塊搬運』。",past:true},
+      {q:"有關搬運力（competence），何者正確？",o:["流速越快，搬運力越弱","搬運力指能搬運的最大顆粒大小","容量與流速無關","只與河寬有關"],a:1,ex:"搬運力指河流能搬運的最大顆粒大小，流速越快搬運力越強。"},
+      {q:"下列何種情況會使河流堆積增強？",o:["坡度變大","入海口流速驟減","暴雨初期","河床加深"],a:1,ex:"入海口等地形變化使流速驟減，堆積增強。"}
+    ],
+    3:[
+      {q:"有關河流搬運與堆積，下列何者正確？",o:["顆粒越大越易被懸移","流速減慢時粗顆粒先堆積","溶液物質最先堆積","搬運與顆粒大小無關"],a:1,ex:"流速減慢時搬運力下降，較粗顆粒先堆積下來。",past:true},
+      {q:"若上游興建水壩，對下游堆積的影響為？",o:["下游泥沙增加","泥沙被攔蓄，下游堆積減少、侵蝕加強","無影響","三角洲迅速擴大"],a:1,ex:"水壩攔蓄泥沙，使下游泥沙減少、堆積減弱而出現下切（侵蝕）加強。"},
+      {q:"有關『平衡剖面（graded profile）』，何者錯誤？",o:["是長期侵蝕堆積趨於平衡的結果","上游陡下游緩","一成不變不會改變","受岩性與流量影響"],a:2,ex:"平衡剖面會隨岩性、流量、構造運動等改變而調整，非一成不變。"}
+    ]
+  },
+  ero: {
+    1:[
+      {q:"海蝕崖（sea cliff）因何形成？",o:["河流堆積","波浪侵蝕海岸基部","風沙堆積","冰川作用"],a:1,ex:"波浪侵蝕海崖基部，使上部崩塌形成海蝕崖。",past:true},
+      {q:"海蝕崖前方的平坦岩台是？",o:["河流沖積平原","海蝕平台（wave-cut platform）","沙咀","潟湖"],a:1,ex:"海蝕崖後退，前方留下退潮時露出的平坦岩台，即海蝕平台。"},
+      {q:"海浪拍打海岸時，主要對何處侵蝕最強？",o:["海崖頂部","海崖基部（水位附近）","遠離海岸處","海底深處"],a:1,ex:"海浪在水位附近侵蝕海崖基部最強，造成上部崩塌。"}
+    ],
+    2:[
+      {q:"海蝕洞→海蝕拱→海蝕柱的發育順序為？",o:["洞→拱→柱","柱→拱→洞","拱→洞→柱","三者同時"],a:0,ex:"海蝕洞貫穿成拱，拱頂崩塌剩柱。",past:true},
+      {q:"海蝕拱（sea arch）崩塌後會形成？",o:["海蝕洞","海蝕柱（stack）","三角洲","沙咀"],a:1,ex:"海蝕拱頂崩塌後，殘留的獨立岩柱即海蝕柱。"},
+      {q:"有關海蝕平台，下列何者正確？",o:["由堆積形成","位於高潮線之上","是海蝕崖後退後留下的侵蝕岩台","屬堆積地貌"],a:2,ex:"海蝕平台是海蝕崖後退後，於潮間帶留下的侵蝕岩台。"}
+    ],
+    3:[
+      {q:"波浪折射（wave refraction）對海蝕的影響是？",o:["使海蝕均勻","使波浪能量集中於突出岬角，加強侵蝕","減弱所有侵蝕","與海蝕無關"],a:1,ex:"波浪折射使能量集中於突出岬角，岬角侵蝕較快。",past:true},
+      {q:"有關『海蝕柱（stack）』與『海蝕拱』，何者正確？",o:["海蝕柱先於海蝕拱出現","海蝕拱崩塌後形成海蝕柱","兩者均屬堆積地貌","海蝕柱由泥沙堆積"],a:1,ex:"海蝕拱頂崩塌後殘留獨立岩柱，即海蝕柱。"},
+      {q:"海蝕洞（cave）的形成位置通常在？",o:["海崖頂","水位附近的軟弱岩層處","深海平原","沙灘"],a:1,ex:"海蝕洞多發育於水位附近的軟弱岩層處。"}
+    ]
+  },
+  dep: {
+    1:[
+      {q:"沙咀（spit）屬於哪類地貌？",o:["侵蝕地貌","堆積地貌","火山地貌","構造地貌"],a:1,ex:"沙咀由沿岸漂沙堆積延伸入海而成。",past:true},
+      {q:"海灘（beach）主要由何形成？",o:["波浪堆積泥沙","河流下蝕","火山噴發","冰川刨蝕"],a:0,ex:"海灘由波浪將泥沙堆積於海岸而成。"},
+      {q:"下列何者是海岸堆積地貌？",o:["海蝕崖","沙咀","海蝕柱","海蝕平台"],a:1,ex:"沙咀為沿岸漂沙堆積而成，屬堆積地貌。"}
+    ],
+    2:[
+      {q:"沿岸漂沙（longshore drift）主要由何推動？",o:["垂直入射的波浪","斜向入射的波浪","潮汐漲退","洋流主導"],a:1,ex:"波浪斜向入射，將泥沙沿岸搬運，稱沿岸漂沙。",past:true},
+      {q:"潟湖（lagoon）與外海間通常由何分隔？",o:["海蝕崖","沙咀或連島沙洲","火山口","三角洲"],a:1,ex:"沙咀或連島沙洲將潟湖與外海隔開。"},
+      {q:"連島沙洲（tombolo）的形成主要依賴？",o:["河流下蝕","沿岸漂沙將泥沙堆積、連接島嶼與陸地","海浪侵蝕岩岸","火山噴發"],a:1,ex:"連島沙洲由沿岸漂沙堆積，把島嶼與大陸（或另一島）連接起來。"}
+    ],
+    3:[
+      {q:"連島沙洲（tombolo）連接的是？",o:["兩條河流","島嶼與大陸（或另一島）","兩個三角洲","海蝕崖與平台"],a:1,ex:"連島沙洲是堆積地貌，連接島嶼與大陸或另一島嶼。",past:true},
+      {q:"有關『沿岸漂沙』與防波堤的關係，何者正確？",o:["防波堤會加強漂沙","防波堤改變水流，可使下游出現侵蝕","防波堤對漂沙無影響","只影響河口"],a:1,ex:"防波堤攔截沿岸漂沙，常使下游因泥沙減少而出現海岸侵蝕。"},
+      {q:"維多利亞港屬於哪種海岸地形？",o:["河流上游峽谷","沉沒河谷（ria／淹沒河谷）","火山口湖","牛軛湖"],a:1,ex:"維多利亞港是沉沒河谷（ria）形成的天然良港，受潮汐影響。"},
+      {q:"有關『海積平原』的敘述，何者正確？",o:["由河流下蝕形成","由河流與海洋堆積泥沙、低平寬闊","坡度大、流速快","屬海蝕地貌"],a:1,ex:"海積平原由河流與海洋堆積泥沙而成，地形低平寬闊，常見於河口與海岸低地。"}
+    ]
+  }
 };
 const CHANCE = [{t:"戶外考察",x:"參加河流考察，知識大增！",eff:{coins:30}},{t:"暴雨氾濫",x:"河流氾濫被困。",eff:{coins:-20}},{t:"河口測量",x:"測量河口流速獲獎勵。",eff:{coins:25}},{t:"颱風",x:"颱風吹襲，跳過一回合。",eff:{skip:1}},{t:"迷路",x:"河谷迷路，倒退 2 格。",eff:{move:-2}},{t:"牛軛湖",x:"發現牛軛湖，心情大好！",eff:{coins:15}},{t:"沉積驚喜",x:"三角洲採得珍貴樣本！",eff:{coins:20}},{t:"順流而下",x:"加速前進 2 格。",eff:{move:2}}];
 const FATE = [{t:"地理大使",x:"當選地理大使，獲獎金！",eff:{coins:40}},{t:"海嘯警報",x:"後退 3 格。",eff:{move:-3}},{t:"研究委託",x:"研究海岸侵蝕獲經費。",eff:{coins:35}},{t:"測驗答錯",x:"被罰款。",eff:{coins:-25}},{t:"地理彩票",x:"大獎入袋！",eff:{coins:50}},{t:"船擱淺",x:"停留一回合。",eff:{skip:1}},{t:"沖積平原",x:"發現肥沃耕地獲利。",eff:{coins:28}},{t:"海岸退卻",x:"撤退 1 格。",eff:{move:-1}}];
@@ -473,23 +567,28 @@ function offlineLanding(p){
   offlineAsk(sq,p);
 }
 
-function pickQ(cat){
-  if(!offlineUsedQ[cat]) offlineUsedQ[cat]=[];
-  const pool=Q[cat];
-  if(offlineUsedQ[cat].length>=pool.length) offlineUsedQ[cat]=[];
-  let idx; do{ idx=Math.floor(Math.random()*pool.length);}while(offlineUsedQ[cat].includes(idx));
-  offlineUsedQ[cat].push(idx); return pool[idx];
+function pickQ(cat, d){
+  const key=cat+"_"+d;
+  if(!offlineUsedQ[key]) offlineUsedQ[key]=[];
+  const pool=Q[cat][d];
+  if(offlineUsedQ[key].length>=pool.length) offlineUsedQ[key]=[];
+  let idx; do{ idx=Math.floor(Math.random()*pool.length);}while(offlineUsedQ[key].includes(idx));
+  offlineUsedQ[key].push(idx); return pool[idx];
 }
 
 function offlineAsk(sq,p){
-  const q=pickQ(sq.cat);
+  const q=pickQ(sq.cat, sq.d);
+  const cfg=DIFF[sq.d];
   if(p.ai){
     busy=true;
     setTimeout(()=>{
-      const choice=Math.random()<0.8?q.a:Math.floor(Math.random()*q.o.length);
+      const willCorrect = Math.random() < cfg.pass;
+      let choice;
+      if(willCorrect) choice=q.a;
+      else { do{ choice=Math.floor(Math.random()*q.o.length); }while(choice===q.a); }
       const correct=choice===q.a;
-      if(correct){ p.score+=sq.ch?35:20; log(`✅ ${p.name} 答對 +${sq.ch?35:20}`);}
-      else{ p.score=Math.max(0,p.score-10); log(`❌ ${p.name} 答錯 -10`);}
+      if(correct){ p.score+=cfg.right; log(`✅ ${p.name} 答對 +${cfg.right}`);}
+      else{ p.score=Math.max(0,p.score-cfg.wrong); log(`❌ ${p.name} 答錯 -${cfg.wrong}`);}
       updatePanel();
       offlineFinishTurn();
     },1100);
@@ -498,8 +597,8 @@ function offlineAsk(sq,p){
   // 真人：顯示題目 Modal
   openQuestion(sq,q,(choice)=>{
     const correct=choice===q.a;
-    if(correct){ p.score+=sq.ch?35:20; log(`✅ 你答對 +${sq.ch?35:20}`);}
-    else{ p.score=Math.max(0,p.score-10); log(`❌ 你答錯 -10`);}
+    if(correct){ p.score+=cfg.right; log(`✅ 你答對 +${cfg.right}`);}
+    else{ p.score=Math.max(0,p.score-cfg.wrong); log(`❌ 你答錯 -${cfg.wrong}`);}
     updatePanel();
     if(offlineCheckWin()) return;
     offlineFinishTurn();
@@ -671,11 +770,13 @@ function actRoll(){
 let _qResolve=null;
 function openQuestion(sq,q,onDone){
   _qResolve=onDone;
-  $("qTitle").textContent = sq.ch?"⭐ 挑戰題":"📘 知識題";
-  $("qText").textContent = q.q;
+  const cfg=DIFF[sq.d];
+  $("qTitle").textContent = cfg.title + " · 難度" + cfg.tag;
+  $("qText").textContent = (q.past?"📄 DSE 歷屆題型｜":"") + q.q;
   const box=$("qOpts"); box.innerHTML="";
   q.o.forEach((opt,oi)=>{
-    const b=document.createElement("button"); b.className="opt"; b.textContent=opt;
+    const b=document.createElement("button"); b.className="opt";
+    b.textContent = String.fromCharCode(65+oi) + ". " + opt;
     b.onclick=()=>onAnswer(b,oi,q); box.appendChild(b);
   });
   $("qExplain").className="explain"; $("qExplain").textContent="";
@@ -738,7 +839,8 @@ function buildBoard(){
     const ic = s.type==="q" ? (window.ICONS[s.icon]||"") : (window.SPECIAL_ICONS[s.icon]||"");
     const nameHtml = (s.type==="go"||s.type==="chance"||s.type==="fate"||s.type==="rest")
       ? `<span class="big">${s.name}</span>` : `<span class="nm">${s.name}</span>`;
-    d.innerHTML = `<div class="icon">${ic}</div>${nameHtml}`;
+    const diffHtml = (s.type==="q") ? `<span class="diff d${s.d}">難度 ${DIFF[s.d].tag}</span>` : "";
+    d.innerHTML = `<div class="icon">${ic}</div>${nameHtml}${diffHtml}`;
     board.appendChild(d);
   });
   positionTokens();
