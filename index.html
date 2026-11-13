@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>河流與海岸大富翁 · DSE 地理</title>
+<style>
+/* 河流與海岸大富翁 — 冷色系 + 立體感 */
+:root{
+  --bg1:#0a1a2a; --bg2:#0f2c44; --bg3:#163a5f;
+  --paper:#f4f8fb; --ink:#22323a; --accent:#2a7f9e; --gold:#d9b25a;
+  /* 冷色系方格（沉穩、不刺眼） */
+  --c-go:#3d5a6c; --c-chance:#5b4b8a; --c-fate:#8a4b6b; --c-rest:#3f7d6e;
+  --c-upper:#2c5f8a; --c-upper2:#1f4a6e;
+  --c-middle:#356a8e; --c-middle2:#25527a;
+  --c-lower:#3f6f96; --c-lower2:#2e5780;
+  --c-ero:#2f8f86; --c-ero2:#1f6f68;
+  --c-dep:#3a7e9e; --c-dep2:#2a6486;
+  --c-process:#4a7aa8; --c-process2:#355f88;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;}
+body{
+  font-family:"PingFang HK","Microsoft JhengHei","Noto Sans CJK TC",sans-serif;
+  color:#e8f0f6; min-height:100vh; padding:14px; position:relative;
+}
+#bg{position:fixed; inset:0; z-index:-2; background:linear-gradient(135deg,var(--bg1),var(--bg2),var(--bg3));}
+#bg::after{content:""; position:absolute; inset:0;
+  background:radial-gradient(circle at 20% 30%,rgba(60,120,160,.25),transparent 40%),
+             radial-gradient(circle at 80% 70%,rgba(40,80,140,.25),transparent 40%);}
+h1{color:#fff; text-align:center; margin:6px 0 2px; font-size:clamp(20px,3vw,30px); letter-spacing:1px;}
+.subtitle{color:#bcd6e6; text-align:center; margin:0 0 12px; font-size:13px;}
+.wrap{display:flex; gap:18px; justify-content:center; align-items:flex-start; flex-wrap:wrap;}
+
+/* ---- 棋盤 ---- */
+#boardArea{position:relative;}
+#board{
+  width:min(720px,94vmin); height:min(720px,94vmin);
+  display:grid; grid-template-columns:repeat(7,1fr); grid-template-rows:repeat(7,1fr);
+  gap:5px; padding:8px; border-radius:16px;
+  background:linear-gradient(145deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+  border:1px solid rgba(255,255,255,.1); box-shadow:0 12px 40px rgba(0,0,0,.4);
+}
+.sq{
+  border-radius:9px; padding:5px 4px; font-size:10px; line-height:1.1; color:#eef;
+  display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:3px;
+  overflow:hidden; position:relative;
+  /* 立體感：上亮下暗 + 內陰影 */
+  box-shadow: inset 0 2px 0 rgba(255,255,255,.18), inset 0 -6px 12px rgba(0,0,0,.35),
+              0 3px 6px rgba(0,0,0,.25);
+}
+.sq .icon{flex:0 0 auto; display:flex; align-items:center; justify-content:center;
+  filter:drop-shadow(0 2px 3px rgba(0,0,0,.5));}
+.sq .icon svg, .sq .icon .emoji{width:34px; height:34px; display:block;}
+.sq .nm{font-weight:700; font-size:10px; text-align:center; text-shadow:0 1px 2px rgba(0,0,0,.6);}
+.sq .tag{font-size:8px; opacity:.7; letter-spacing:.5px;}
+/* 主題漸層（冷色） */
+.sq.upper{background:linear-gradient(155deg,var(--c-upper),var(--c-upper2));}
+.sq.middle{background:linear-gradient(155deg,var(--c-middle),var(--c-middle2));}
+.sq.lower{background:linear-gradient(155deg,var(--c-lower),var(--c-lower2));}
+.sq.ero{background:linear-gradient(155deg,var(--c-ero),var(--c-ero2));}
+.sq.dep{background:linear-gradient(155deg,var(--c-dep),var(--c-dep2));}
+.sq.process{background:linear-gradient(155deg,var(--c-process),var(--c-process2));}
+.sq.go{background:linear-gradient(155deg,var(--c-go),#2a4252); justify-content:center;}
+.sq.chance{background:linear-gradient(155deg,var(--c-chance),#3f3560); justify-content:center;}
+.sq.fate{background:linear-gradient(155deg,var(--c-fate),#6a3550); justify-content:center;}
+.sq.rest{background:linear-gradient(155deg,var(--c-rest),#2a5d52); justify-content:center;}
+.sq.challenge::after{content:"★"; position:absolute; top:3px; right:5px; color:var(--gold);
+  font-size:12px; text-shadow:0 0 4px rgba(0,0,0,.6);}
+.sq .big{font-size:14px; font-weight:800; text-shadow:0 1px 3px rgba(0,0,0,.6);}
+/* 中央 */
+#center{position:absolute; left:14.28%; top:14.28%; width:57.14%; height:57.14%;
+  background:linear-gradient(160deg,rgba(244,248,251,.97),rgba(230,240,246,.95));
+  border-radius:14px; padding:12px 14px; display:flex; flex-direction:column;
+  box-shadow:0 8px 24px rgba(0,0,0,.4), inset 0 2px 0 rgba(255,255,255,.8);}
+#center h2{margin:0 0 4px; color:var(--accent); font-size:16px;}
+#center .tip{font-size:11px; color:#5a7; margin-bottom:6px;}
+#log{flex:1; overflow-y:auto; font-size:11px; color:#345; line-height:1.55;
+  border-top:1px dashed #bcd; padding-top:6px;}
+#log div{padding:1px 0;}
+/* 棋子 */
+#tokens{position:absolute; inset:0; pointer-events:none;}
+.token{position:absolute; width:24px; height:24px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center; color:#fff; font-weight:800; font-size:11px;
+  box-shadow:0 3px 6px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.4);
+  border:2px solid rgba(255,255,255,.9); transition:left .5s ease, top .5s ease;}
+/* 側欄 */
+#panel{width:300px; max-width:92vw; background:var(--paper); border-radius:14px; padding:14px;
+  color:var(--ink); box-shadow:0 10px 30px rgba(0,0,0,.4);}
+.players{display:flex; flex-direction:column; gap:6px; margin-bottom:10px;}
+.prow{display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:8px; background:#e9eef3;}
+.prow.active{outline:3px solid var(--gold); background:#fff5db;}
+.prow.done{opacity:.5;}
+.dot{width:18px; height:18px; border-radius:50%; border:2px solid #fff; box-shadow:0 1px 3px rgba(0,0,0,.3);}
+.pname{flex:1; font-weight:700; font-size:13px;}
+.pscore{font-weight:800; color:var(--accent);}
+.pbadge{font-size:9px; color:#fff; background:var(--accent); border-radius:10px; padding:1px 6px;}
+#diceBox{display:flex; align-items:center; gap:12px; justify-content:center; margin:8px 0;}
+#dice{width:54px; height:54px; border-radius:12px; background:#fff; display:flex; align-items:center; justify-content:center;
+  font-size:28px; color:var(--accent); box-shadow:inset 0 0 0 2px #ccc, 0 2px 6px rgba(0,0,0,.2);
+  transition:transform .25s;}
+.roll{background:var(--accent); color:#fff; border:none; padding:12px 18px; border-radius:10px;
+  font-size:15px; font-weight:800; cursor:pointer; box-shadow:0 4px 0 #1d5870;}
+.roll:active{transform:translateY(2px); box-shadow:0 2px 0 #1d5870;}
+.roll:disabled{opacity:.45; cursor:not-allowed; box-shadow:0 4px 0 #9bb;}
+.ghost{background:#e1e8ef; color:#345; border:none; padding:9px 12px; border-radius:8px; cursor:pointer; font-size:12px;}
+.ghost:hover{background:#d2dbe5;}
+.meta{font-size:12px; color:#567; text-align:center; margin:6px 0;}
+.rules{font-size:11px; color:#456; background:#eef3f7; border-radius:8px; padding:8px 10px; margin-top:8px; line-height:1.6;}
+.rules b{color:var(--accent);}
+/* Modal */
+.overlay{position:fixed; inset:0; background:rgba(5,15,25,.6); backdrop-filter:blur(3px);
+  display:none; align-items:center; justify-content:center; z-index:50; padding:14px;}
+.overlay.show{display:flex;}
+.card{background:var(--paper); border-radius:16px; max-width:500px; width:100%; padding:20px 22px;
+  color:var(--ink); box-shadow:0 16px 50px rgba(0,0,0,.5); animation:pop .25s ease;}
+@keyframes pop{from{transform:scale(.92); opacity:0;}to{transform:scale(1); opacity:1;}}
+.card h3{margin:0 0 12px; color:var(--accent); font-size:18px;}
+.mode-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+.mode-btn{background:#eaf1f6; border:2px solid #cdd8e2; border-radius:12px; padding:16px 10px;
+  cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px; color:var(--ink);}
+.mode-btn:hover{border-color:var(--accent); background:#e0f0f6;}
+.mode-btn .mi{font-size:26px;}
+.mode-btn b{font-size:14px;}
+.mode-btn small{font-size:10px; color:#789;}
+.online-form{margin-top:14px; border-top:1px dashed #bcd; padding-top:12px;}
+.field{margin:10px 0;}
+.field label{font-size:12px; font-weight:700; display:block; margin-bottom:4px; color:#456;}
+.field input{width:100%; padding:9px; border-radius:8px; border:2px solid #ccd; font-size:14px;}
+.btn-row{display:flex; gap:8px; flex-wrap:wrap;}
+.primary{background:var(--accent); color:#fff; border:none; padding:10px 14px; border-radius:10px;
+  font-size:14px; font-weight:800; cursor:pointer; flex:1;}
+.ghost.lobby{flex:0 0 auto;}
+.hint{font-size:11px; color:#789; margin:8px 0 0;}
+.room-code{font-size:15px; text-align:center; margin:6px 0;}
+.room-code b{font-size:24px; color:var(--accent); letter-spacing:3px;}
+.lobby-players{display:flex; flex-direction:column; gap:5px; margin-top:8px;}
+.lobby-players .lp{display:flex; align-items:center; gap:8px; padding:6px 8px; background:#eef3f7; border-radius:8px; font-size:13px;}
+#startBtn{flex:1;}
+.q{font-size:15px; font-weight:700; line-height:1.5; margin-bottom:14px;}
+.opt{display:block; width:100%; text-align:left; margin:7px 0; padding:10px 12px; border-radius:10px;
+  border:2px solid #d2dae2; background:#fff; cursor:pointer; font-size:14px;}
+.opt:hover{border-color:var(--accent); background:#f0f8fb;}
+.opt.correct{background:#dcf5e1; border-color:#2a9d4f;}
+.opt.wrong{background:#fde0e0; border-color:#c0392b;}
+.opt:disabled{cursor:default;}
+.explain{margin-top:12px; padding:10px 12px; background:#fff5db; border-radius:8px; font-size:13px; line-height:1.5; display:none;}
+.explain.show{display:block;}
+.cardbtn{margin-top:14px; width:100%; background:var(--accent); color:#fff; border:none; padding:11px;
+  border-radius:10px; font-size:15px; font-weight:800; cursor:pointer; display:none;}
+.cardbtn.show{display:block;}
+.cardtext{font-size:15px; line-height:1.7;}
+.cardtag{display:inline-block; padding:3px 12px; border-radius:20px; font-size:12px; font-weight:800; color:#fff; margin-bottom:8px;}
+.winner{font-size:22px; font-weight:900; color:var(--gold); text-align:center; margin:6px 0;}
+.toast{position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:rgba(20,40,60,.95);
+  color:#fff; padding:10px 18px; border-radius:24px; font-size:13px; z-index:80; opacity:0; pointer-events:none; transition:opacity .3s;}
+.toast.show{opacity:1;}
+@media(max-width:560px){
+  .sq .icon svg,.sq .icon .emoji{width:26px;height:26px;}
+  .sq .nm{font-size:8px;}
+  #center h2{font-size:13px;}
+}
+
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<h1>🌊 河流與海岸大富翁</h1>
+<p class="subtitle">DSE 地理「河流與海岸」 · 單機對 AI ｜ 聯機邀請碼對戰</p>
+
+<!-- 模式選擇 -->
+<div class="overlay show" id="modeScreen">
+  <div class="card">
+    <h3>🎮 選擇模式</h3>
+    <div class="mode-grid">
+      <button class="mode-btn" onclick="enterOffline()">
+        <span class="mi">💻</span><b>單機模式</b><small>你 vs 3 個 AI 地理學家</small>
+      </button>
+      <button class="mode-btn" onclick="enterOnline()">
+        <span class="mi">🌐</span><b>聯機模式</b><small>邀請碼 3/4 人真連線</small>
+      </button>
+    </div>
+    <div id="onlineForm" class="online-form" style="display:none">
+      <div class="field"><label>你的名字</label><input id="myName" placeholder="玩家甲" value="玩家甲"></div>
+      <div class="btn-row">
+        <button class="primary" onclick="onlineCreate()">➕ 建立房間</button>
+      </div>
+      <div class="field"><label>邀請碼</label><input id="joinCode" placeholder="輸入 5 位邀請碼"></div>
+      <div class="btn-row">
+        <button class="primary" onclick="onlineJoin()">🔗 加入房間</button>
+      </div>
+      <p class="hint" id="netHint">伺服器位址：<span id="srvAddr">同頁</span></p>
+    </div>
+  </div>
+</div>
+
+<!-- 房間大廳 -->
+<div class="overlay" id="lobbyScreen">
+  <div class="card">
+    <h3>🏠 房間大廳</h3>
+    <p class="room-code">邀請碼：<b id="roomCode">—</b>　<span id="roomHost"></span></p>
+    <p class="hint">把邀請碼分享給朋友，或按「補 AI」開始。</p>
+    <div id="lobbyPlayers" class="lobby-players"></div>
+    <div class="btn-row" style="margin-top:12px">
+      <button class="ghost" onclick="copyCode()">📋 複製邀請碼</button>
+      <button class="ghost" onclick="fillAI()">🤖 補充 AI</button>
+      <button class="primary" id="startBtn" onclick="startGame()">▶ 開始對局</button>
+    </div>
+  </div>
+</div>
+
+<!-- 遊戲主畫面 -->
+<div class="wrap" id="gameWrap">
+  <div id="boardArea">
+    <div id="board"></div>
+    <div id="center">
+      <h2>河流與海岸</h2>
+      <div class="tip">沿河而上，臨海而下。</div>
+      <div id="log"></div>
+    </div>
+    <div id="tokens"></div>
+  </div>
+  <div id="panel">
+    <div class="players" id="players"></div>
+    <div id="diceBox"><div id="dice">🎲</div><button class="roll" id="rollBtn" onclick="actRoll()">擲骰前進</button></div>
+    <div class="meta" id="metaInfo"></div>
+    <button class="ghost" style="width:100%" onclick="toggleRules()">📖 玩法說明</button>
+    <button class="ghost" style="width:100%;margin-top:6px" onclick="exitGame()">🚪 離開對局</button>
+    <div class="rules" id="rulesBox" style="display:none"></div>
+  </div>
+</div>
+
+<!-- 題目 Modal -->
+<div class="overlay" id="qOverlay">
+  <div class="card">
+    <h3 id="qTitle">知識題</h3>
+    <div class="q" id="qText"></div>
+    <div id="qOpts"></div>
+    <div class="explain" id="qExplain"></div>
+    <button class="cardbtn" id="qNext" onclick="closeQuestion()">繼續 ▶</button>
+  </div>
+</div>
+<!-- 卡片 Modal -->
+<div class="overlay" id="cOverlay">
+  <div class="card">
+    <span class="cardtag" id="cTag">機會</span>
+    <div class="cardtext" id="cText"></div>
+    <button class="cardbtn show" id="cBtn" onclick="confirmCard()">確定 ▶</button>
+  </div>
+</div>
+<!-- 結算 Modal -->
+<div class="overlay" id="winOverlay">
+  <div class="card">
+    <div class="winner" id="winText"></div>
+    <div id="winDetail"></div>
+    <button class="cardbtn show" onclick="backToMode()">再玩一次 🔄</button>
+  </div>
+</div>
+<!-- 提示 -->
+<div class="toast" id="toast"></div>
+
+<script>
+// 河流與海岸大富翁 — 立體感地貌圖示（SVG / emoji）
+// 每個地貌用簡潔立體造型呈現，減少文字。
+const ICONS = {
+  // 河流上游 V形谷
+  vvalley: `<svg viewBox="0 0 48 48"><defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6fb0d8"/><stop offset="1" stop-color="#2c5f8a"/></linearGradient></defs>
+    <path d="M4 8 L24 44 L44 8 Z" fill="url(#g1)" stroke="#dfeefc" stroke-width="1.5"/>
+    <path d="M10 12 Q24 30 38 12" fill="none" stroke="#bfe3f7" stroke-width="2.2" stroke-linecap="round"/></svg>`,
+  // 峽谷
+  gorge: `<svg viewBox="0 0 48 48"><rect x="4" y="10" width="12" height="34" rx="2" fill="#3a6e94"/>
+    <rect x="32" y="10" width="12" height="34" rx="2" fill="#2c5f8a"/>
+    <path d="M16 14 Q24 24 32 14 L32 40 Q24 36 16 40 Z" fill="#9fd0ec"/></svg>`,
+  // 下蝕（向下箭頭＋水流）
+  downcut: `<svg viewBox="0 0 48 48"><path d="M16 6 Q24 22 32 6" fill="none" stroke="#9fd0ec" stroke-width="3" stroke-linecap="round"/>
+    <path d="M24 14 L24 34 M18 28 L24 38 L30 28" fill="none" stroke="#f6d36b" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  // 河曲 meander
+  meander: `<svg viewBox="0 0 48 48"><path d="M4 24 Q12 12 20 24 T36 24 T44 24" fill="none" stroke="#bfe3f7" stroke-width="3" stroke-linecap="round"/>
+    <path d="M4 30 Q12 18 20 30 T36 30 T44 30" fill="none" stroke="#7fc4e8" stroke-width="2" opacity=".5"/></svg>`,
+  // 瀑布
+  waterfall: `<svg viewBox="0 0 48 48"><path d="M8 8 H40 V16 H8 Z" fill="#3a6e94"/>
+    <rect x="14" y="16" width="6" height="26" fill="#9fd0ec"/><rect x="22" y="16" width="6" height="26" fill="#cfeefb"/>
+    <rect x="30" y="16" width="6" height="26" fill="#9fd0ec"/>
+    <path d="M8 42 H40" stroke="#2c5f8a" stroke-width="2"/></svg>`,
+  // 沖積平原
+  floodplain: `<svg viewBox="0 0 48 48"><path d="M0 34 Q12 24 24 34 T48 34 V48 H0 Z" fill="#7fa8c4"/>
+    <path d="M6 30 Q14 22 22 30" fill="none" stroke="#bfe3f7" stroke-width="2.5"/>
+    <path d="M26 32 Q34 24 42 32" fill="none" stroke="#bfe3f7" stroke-width="2.5"/></svg>`,
+  // 牛軛湖
+  oxbow: `<svg viewBox="0 0 48 48"><path d="M4 24 H18 Q30 24 30 16 Q30 8 22 8" fill="none" stroke="#7fc4e8" stroke-width="2.5"/>
+    <ellipse cx="22" cy="18" rx="9" ry="7" fill="#9fd0ec" stroke="#2c5f8a" stroke-width="1.5"/>
+    <path d="M4 28 H40" stroke="#2c5f8a" stroke-width="2" opacity=".4"/></svg>`,
+  // 三角洲
+  delta: `<svg viewBox="0 0 48 48"><path d="M24 6 L8 42 H40 Z" fill="#7fa8c4"/>
+    <path d="M24 6 L16 42 M24 6 L24 42 M24 6 L32 42" stroke="#cfeefb" stroke-width="1.6" opacity=".8"/>
+    <path d="M6 44 Q16 38 24 44 T42 44" fill="none" stroke="#9fd0ec" stroke-width="2"/></svg>`,
+  // 搬運作用
+  transport: `<svg viewBox="0 0 48 48"><path d="M4 26 Q14 18 24 26 T44 26" fill="none" stroke="#9fd0ec" stroke-width="2.8"/>
+    <circle cx="14" cy="24" r="2.5" fill="#d9b25a"/><circle cx="22" cy="23" r="2" fill="#cdb08a"/>
+    <circle cx="30" cy="24" r="3" fill="#b9a07a"/><circle cx="38" cy="25" r="2.2" fill="#d9b25a"/></svg>`,
+  // 堆積作用
+  deposit: `<svg viewBox="0 0 48 48"><path d="M4 40 L14 24 L22 34 L30 20 L40 40 Z" fill="#b9a07a" stroke="#8a7a5a" stroke-width="1.5"/>
+    <path d="M4 42 H44" stroke="#2c5f8a" stroke-width="2"/>
+    <circle cx="36" cy="30" r="2" fill="#d9b25a"/></svg>`,
+  // 海蝕崖
+  cliff: `<svg viewBox="0 0 48 48"><path d="M6 10 H22 V42 H6 Z" fill="#4a7a98"/>
+    <path d="M22 10 L22 42 H34 L40 42" fill="none"/>
+    <path d="M22 30 Q30 34 42 28" fill="none" stroke="#9fd0ec" stroke-width="2.5"/>
+    <path d="M6 42 H44 V46 H6 Z" fill="#2c5f8a"/></svg>`,
+  // 海蝕洞
+  cave: `<svg viewBox="0 0 48 48"><path d="M6 8 H42 V42 H6 Z" fill="#3a6e94"/>
+    <path d="M16 42 Q16 22 24 22 Q32 22 32 42 Z" fill="#0a2030"/>
+    <path d="M10 38 Q16 36 16 42 M38 38 Q32 36 32 42" fill="none" stroke="#9fd0ec" stroke-width="2"/></svg>`,
+  // 海蝕拱
+  arch: `<svg viewBox="0 0 48 48"><rect x="4" y="8" width="12" height="34" fill="#3a6e94"/>
+    <rect x="32" y="8" width="12" height="34" fill="#2c5f8a"/>
+    <path d="M16 24 Q24 14 32 24 V42 Q24 36 16 42 Z" fill="#0a2030"/>
+    <path d="M6 40 Q10 38 10 42 M42 40 Q38 38 38 42" stroke="#9fd0ec" stroke-width="2" fill="none"/></svg>`,
+  // 海蝕柱
+  stack: `<svg viewBox="0 0 48 48"><path d="M18 6 H30 V42 H18 Z" fill="#3a6e94"/>
+    <path d="M18 6 H30 L33 12 H15 Z" fill="#4a7a98"/>
+    <path d="M4 42 H44 V46 H4 Z" fill="#2c5f8a"/>
+    <path d="M6 40 Q14 36 14 42 M34 40 Q42 36 42 42" stroke="#9fd0ec" stroke-width="2" fill="none"/></svg>`,
+  // 海蝕平台
+  platform: `<svg viewBox="0 0 48 48"><path d="M4 26 L14 12 H26 L36 26 Z" fill="#3a6e94"/>
+    <rect x="4" y="26" width="40" height="6" fill="#4a7a98"/>
+    <path d="M4 38 H44 V46 H4 Z" fill="#2c5f8a"/>
+    <path d="M6 36 Q12 34 12 38 M30 36 Q36 34 36 38" stroke="#9fd0ec" stroke-width="2" fill="none"/></svg>`,
+  // 海灘
+  beach: `<svg viewBox="0 0 48 48"><path d="M0 30 Q10 22 24 30 T48 30 V48 H0 Z" fill="#d9b25a"/>
+    <path d="M0 26 Q10 18 24 26 T48 26 V30 H0 Z" fill="#2c5f8a"/>
+    <circle cx="18" cy="20" r="3" fill="#b9a07a"/></svg>`,
+  // 沙咀
+  spit: `<svg viewBox="0 0 48 48"><rect x="0" y="0" width="48" height="48" fill="#2c5f8a"/>
+    <path d="M4 20 Q16 26 28 22 Q36 19 44 24" fill="none" stroke="#d9b25a" stroke-width="6" stroke-linecap="round"/>
+    <path d="M4 18 Q16 24 28 20" fill="none" stroke="#e8cf8a" stroke-width="2" opacity=".7"/></svg>`,
+  // 灣口沙洲
+  bar: `<svg viewBox="0 0 48 48"><rect x="0" y="0" width="48" height="48" fill="#2c5f8a"/>
+    <path d="M4 8 Q24 14 44 8" fill="none" stroke="#d9b25a" stroke-width="6" stroke-linecap="round"/>
+    <path d="M4 10 Q24 16 44 10" fill="none" stroke="#e8cf8a" stroke-width="2" opacity=".7"/>
+    <ellipse cx="24" cy="34" rx="16" ry="6" fill="#7fa8c4" opacity=".7"/></svg>`,
+  // 潟湖
+  lagoon: `<svg viewBox="0 0 48 48"><rect x="0" y="0" width="48" height="48" fill="#2c5f8a"/>
+    <path d="M4 14 Q24 20 44 14" fill="none" stroke="#d9b25a" stroke-width="5" stroke-linecap="round"/>
+    <ellipse cx="24" cy="34" rx="16" ry="8" fill="#9fd0ec"/></svg>`,
+  // 三角港
+  estuary: `<svg viewBox="0 0 48 48"><path d="M6 6 L18 6 L24 44 L30 6 L42 6 Z" fill="#9fd0ec" opacity=".4" stroke="#2c5f8a" stroke-width="1.5"/>
+    <path d="M14 6 Q20 30 24 44 M34 6 Q28 30 24 44" fill="none" stroke="#7fa8c4" stroke-width="2"/>
+    <path d="M6 42 H42" stroke="#2c5f8a" stroke-width="2"/></svg>`,
+};
+// 角落 / 特殊格圖示（emoji 造型）
+const SPECIAL_ICONS = {
+  go: `<div class="emoji">🏁</div>`,
+  chance: `<div class="emoji">🎲</div>`,
+  fate: `<div class="emoji">🔮</div>`,
+  rest: `<div class="emoji">🎓</div>`,
+};
+window.ICONS = ICONS;
+window.SPECIAL_ICONS = SPECIAL_ICONS;
+
+</script>
+<script>
+// 河流與海岸大富翁 — 前端邏輯（單機 AI + 聯機 WebSocket）
+"use strict";
+
+// 棋盤定義（與 server 一致），含圖示鍵
+const BOARD = [
+  {i:0, r:6,c:6, type:"go", name:"起點", icon:"go"},
+  {i:1, r:6,c:5, type:"q", cat:"upper", name:"V形谷", icon:"vvalley"},
+  {i:2, r:6,c:4, type:"q", cat:"upper", name:"峽谷", icon:"gorge"},
+  {i:3, r:6,c:3, type:"q", cat:"upper", name:"下蝕", icon:"downcut", ch:true},
+  {i:4, r:6,c:2, type:"q", cat:"middle", name:"河曲", icon:"meander"},
+  {i:5, r:6,c:1, type:"q", cat:"middle", name:"瀑布", icon:"waterfall"},
+  {i:6, r:6,c:0, type:"chance", name:"機會", icon:"chance"},
+  {i:7, r:5,c:0, type:"q", cat:"lower", name:"沖積平原", icon:"floodplain"},
+  {i:8, r:4,c:0, type:"q", cat:"lower", name:"牛軛湖", icon:"oxbow"},
+  {i:9, r:3,c:0, type:"q", cat:"lower", name:"三角洲", icon:"delta", ch:true},
+  {i:10,r:2,c:0, type:"q", cat:"process", name:"搬運作用", icon:"transport"},
+  {i:11,r:1,c:0, type:"q", cat:"process", name:"堆積作用", icon:"deposit"},
+  {i:12,r:0,c:0, type:"rest", name:"學院", icon:"rest"},
+  {i:13,r:0,c:1, type:"q", cat:"ero", name:"海蝕崖", icon:"cliff"},
+  {i:14,r:0,c:2, type:"q", cat:"ero", name:"海蝕洞", icon:"cave"},
+  {i:15,r:0,c:3, type:"q", cat:"ero", name:"海蝕拱", icon:"arch", ch:true},
+  {i:16,r:0,c:4, type:"q", cat:"ero", name:"海蝕柱", icon:"stack"},
+  {i:17,r:0,c:5, type:"q", cat:"ero", name:"海蝕平台", icon:"platform"},
+  {i:18,r:0,c:6, type:"fate", name:"命運", icon:"fate"},
+  {i:19,r:1,c:6, type:"q", cat:"dep", name:"海灘", icon:"beach"},
+  {i:20,r:2,c:6, type:"q", cat:"dep", name:"沙咀", icon:"spit"},
+  {i:21,r:3,c:6, type:"q", cat:"dep", name:"灣口沙洲", icon:"bar"},
+  {i:22,r:4,c:6, type:"q", cat:"dep", name:"潟湖", icon:"lagoon", ch:true},
+  {i:23,r:5,c:6, type:"q", cat:"dep", name:"三角港", icon:"estuary"},
+];
+
+const PALETTE = ["#2a7f9e","#3a7bd5","#7a5fb5","#27ae60","#e0823c","#c0392b"];
+const TOKENS = ["甲","乙","丙","丁"];
+
+// 單機題庫（前端內嵌，離線可用）
+const Q = {
+  upper:[{q:"河流上游坡度大、流速快，何種侵蝕作用最強？",o:["側蝕","下蝕（垂直侵蝕）","溶蝕","風蝕"],a:1,ex:"上游坡陡流急，以下蝕為主，深切河谷形成 V 形谷。"},
+  {q:"下列哪項是河流上游常見的地貌？",o:["V形谷","沖積平原","三角洲","潟湖"],a:0,ex:"V 形谷是上游下蝕強烈的產物。"},
+  {q:"峽谷（gorge）多形成於？",o:["下游平原","硬岩區且下蝕強烈","河口三角洲","海灘"],a:1,ex:"峽谷常見於硬岩區，河流持續下切而成。"},
+  {q:"關於河流上游，下列何者正確？",o:["側蝕比下蝕強","以堆積為主","下蝕強、搬運力大、多V形谷","河谷寬闊"],a:2,ex:"上游下蝕強、流速快，河谷呈 V 形。"}],
+  middle:[{q:"河曲（meander）的發育主要與何作用有關？",o:["下蝕","側蝕","溶蝕","堆積"],a:1,ex:"中游側蝕增強，凹岸侵蝕、凸岸堆積。"},
+  {q:"瀑布（waterfall）常見於？",o:["硬岩與軟岩交界處","兩河河口","海蝕平台","沖積平原中央"],a:0,ex:"硬岩覆於軟岩之上，軟岩被侵蝕後形成落差。"},
+  {q:"河曲頸被截直後會形成？",o:["三角洲","牛軛湖","海蝕柱","峽谷"],a:1,ex:"河曲頸被切斷，原有河道廢棄成牛軛湖。"}],
+  lower:[{q:"三角洲在何處形成？",o:["河流上游","河流入海口","山區峽谷","海蝕崖"],a:1,ex:"河流入海口流速驟減，泥沙堆積成三角洲。"},
+  {q:"牛軛湖是怎樣形成的？",o:["海浪堆積","河曲頸被截直切斷","火山噴發","冰川刨蝕"],a:1,ex:"河曲頸被截直後，彎曲河道孤立成牛軛湖。"},
+  {q:"關於河流下游，下列何者錯誤？",o:["坡度小","流速慢","堆積作用強","以下蝕為主"],a:3,ex:"下游坡緩流慢，以側蝕與堆積為主。"}],
+  process:[{q:"河流以懸浮方式搬運的是？",o:["大型漂石","泥沙與細微粒","卵石","溶解的礦物"],a:1,ex:"懸移搬運泥沙等細微粒；溶解物質屬溶液搬運。"},
+  {q:"下列何者屬溶液搬運？",o:["跳移","懸移","溶解物質隨水運走","拖移"],a:2,ex:"可溶性礦物溶於水隨流搬運。"},
+  {q:"河流何時發生堆積作用？",o:["流速加快","搬運能力下降（流速減慢）","降雨量增加","坡度變大"],a:1,ex:"流速減慢、搬運力下降，泥沙便堆積。"},
+  {q:"常見的海岸防護工程包括？",o:["海堤、防波堤、拋石","興建水壩","砍伐林木","抽乾地下水"],a:0,ex:"海堤、防波堤與拋石都是常見的海岸防護工程。"}],
+  ero:[{q:"海蝕崖因何形成？",o:["河流堆積","波浪侵蝕海岸基部","風沙堆積","冰川"],a:1,ex:"波浪侵蝕海崖基部，上部崩塌形成海蝕崖。"},
+  {q:"海蝕洞→拱→柱的順序為？",o:["洞→拱→柱","柱→拱→洞","拱→洞→柱","同時"],a:0,ex:"海蝕洞貫穿成拱，拱頂崩塌剩柱。"},
+  {q:"海蝕平台是？",o:["河流堆積平原","海蝕崖前退潮露出的平坦岩台","沙咀","潟湖"],a:1,ex:"海蝕崖後退，前方留下退潮時露出的平坦岩台。"},
+  {q:"關於海蝕地貌，何者正確？",o:["海蝕柱由海積形成","海蝕拱崩塌後形成海蝕柱","海蝕平台屬堆積地貌","海蝕崖由河流造成"],a:1,ex:"海蝕拱頂崩塌後殘留的獨立岩柱即海蝕柱。"},
+  {q:"下列哪項不屬侵蝕地貌？",o:["海蝕崖","海蝕洞","海蝕柱","沙咀"],a:3,ex:"沙咀是海岸堆積地貌。"},
+  {q:"東平洲以何種地貌著名？",o:["火山岩柱","頁岩千層糕地貌與海蝕平台","珊瑚礁","冰川U谷"],a:1,ex:"東平洲以沉積岩千層糕及海蝕平台聞名。"}],
+  dep:[{q:"沙咀屬哪類地貌？",o:["侵蝕","堆積","火山","構造"],a:1,ex:"沙咀由沿岸漂沙堆積延伸入海而成。"},
+  {q:"沿岸漂沙主要由何推動？",o:["垂直入射的波浪","斜向入射的波浪","潮汐漲退","洋流主導"],a:1,ex:"波浪斜向入射，泥沙沿岸搬運。"},
+  {q:"潟湖與外海間通常由何分隔？",o:["海蝕崖","沙咀或灣口沙洲","火山口","三角洲"],a:1,ex:"沙咀或灣口沙洲將潟湖與外海隔開。"},
+  {q:"關於堆積海岸，何者錯誤？",o:["沙咀由沿岸漂沙形成","灣口沙洲封閉河口成潟湖","海蝕平台是典型堆積地貌","海灘由波浪堆積而成"],a:2,ex:"海蝕平台是侵蝕地貌。"},
+  {q:"維多利亞港是？",o:["河流上游峽谷","天然良港（沉沒河谷／三角港）","火山口湖","牛軛湖"],a:1,ex:"維多利亞港是沉沒河谷形成的天然良港。"},
+  {q:"何者常見於河流入海口？",o:["V形谷","三角洲","海蝕拱","瀑布"],a:1,ex:"三角洲出現在河流入海口。"}]
+};
+const CHANCE = [{t:"戶外考察",x:"參加河流考察，知識大增！",eff:{coins:30}},{t:"暴雨氾濫",x:"河流氾濫被困。",eff:{coins:-20}},{t:"河口測量",x:"測量河口流速獲獎勵。",eff:{coins:25}},{t:"颱風",x:"颱風吹襲，跳過一回合。",eff:{skip:1}},{t:"迷路",x:"河谷迷路，倒退 2 格。",eff:{move:-2}},{t:"牛軛湖",x:"發現牛軛湖，心情大好！",eff:{coins:15}},{t:"沉積驚喜",x:"三角洲採得珍貴樣本！",eff:{coins:20}},{t:"順流而下",x:"加速前進 2 格。",eff:{move:2}}];
+const FATE = [{t:"地理大使",x:"當選地理大使，獲獎金！",eff:{coins:40}},{t:"海嘯警報",x:"後退 3 格。",eff:{move:-3}},{t:"研究委託",x:"研究海岸侵蝕獲經費。",eff:{coins:35}},{t:"測驗答錯",x:"被罰款。",eff:{coins:-25}},{t:"地理彩票",x:"大獎入袋！",eff:{coins:50}},{t:"船擱淺",x:"停留一回合。",eff:{skip:1}},{t:"沖積平原",x:"發現肥沃耕地獲利。",eff:{coins:28}},{t:"海岸退卻",x:"撤退 1 格。",eff:{move:-1}}];
+
+// ===== 全域狀態 =====
+let MODE = null; // 'offline' | 'online'
+let players = [];     // 當前畫面玩家
+let me = null;        // 我的玩家 id
+let turn = 0;
+let turnCount = 0;
+let target = 200;
+let gameOver = false;
+let busy = false;     // 動畫/等待中
+let ws = null;
+let myId = "p_" + Math.random().toString(36).slice(2, 9);
+let roomCode = null;
+let offlineUsedQ = {};
+
+// ===== UI 工具 =====
+function $(id){return document.getElementById(id);}
+function toast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove("show"),2200); }
+function show(id){ $(id).classList.add("show"); }
+function hide(id){ $(id).classList.remove("show"); }
+
+function enterOffline(){
+  MODE="offline";
+  hide("modeScreen");
+  setupOfflineGame();
+}
+
+  
+  $("onlineForm").style.display="block";
+  // 顯示伺服器位址（同頁 = 與網頁同 host）
+  $("srvAddr").textContent = location.host || "同頁";
+}
+function backToMode(){
+  hide("winOverlay"); hide("lobbyScreen");
+  if(ws){ try{ws.close();}catch(e){} ws=null; }
+  $("gameWrap").style.display="none";
+  show("modeScreen");
+}
+function exitGame(){
+  if(MODE==="online" && ws){ ws.send(JSON.stringify({type:"restart"})); }
+  backToMode();
+}
+
+// ===== 單機模式 =====
+function setupOfflineGame(){
+  const myName = "你";
+  players = [];
+  players.push({id:myId, name:myName, color:PALETTE[0], token:TOKENS[0], pos:0, score:0, skip:0, ai:false});
+  const aiNames=["AI 地理達人","AI 河谷博士","AI 海岸專家"];
+  for(let i=0;i<3;i++){
+    players.push({id:"ai"+i, name:aiNames[i], color:PALETTE[i+1], token:TOKENS[i+1], pos:0, score:0, skip:0, ai:true});
+  }
+  me=myId; turn=0; turnCount=0; target=200; gameOver=false; busy=false; offlineUsedQ={};
+  $("gameWrap").style.display="flex";
+  buildBoard();
+  log("🚩 單機對局開始！你 vs 3 個 AI，目標 "+target+" 地理幣。");
+  updatePanel();
+  // 若首回合是 AI，自動
+  maybeAI();
+}
+
+function maybeAI(){
+  if(gameOver) return;
+  const p=players[turn];
+  if(p.ai){ busy=true; setTimeout(()=>offlineRoll(p),700); }
+}
+
+function offlineRoll(p){
+  if(p.skip>0){ p.skip--; log(`⏸️ ${p.name} 跳過回合`); offlineFinishTurn(); return; }
+  const steps=1+Math.floor(Math.random()*6);
+  showDice(steps);
+  const old=p.pos; const np=(old+steps)%24; p.pos=np;
+  if(np<old){ p.score+=50; log(`🏁 ${p.name} 經過起點 +50`); }
+  log(`🎲 ${p.name} 擲出 ${steps}`);
+  positionTokens();
+  updatePanel();
+  setTimeout(()=>offlineLanding(p),500);
+}
+
+function offlineLanding(p){
+  const sq=BOARD[p.pos];
+  if(sq.type==="go"){ log(`🏠 ${p.name} 抵達起點`); offlineFinishTurn(); return; }
+  if(sq.type==="rest"){ p.score+=10; log(`🎓 ${p.name} 學院補給 +10`); updatePanel(); offlineFinishTurn(); return; }
+  if(sq.type==="chance"){ offlineCard(p,"chance"); return; }
+  if(sq.type==="fate"){ offlineCard(p,"fate"); return; }
+  offlineAsk(sq,p);
+}
+
+function pickQ(cat){
+  if(!offlineUsedQ[cat]) offlineUsedQ[cat]=[];
+  const pool=Q[cat];
+  if(offlineUsedQ[cat].length>=pool.length) offlineUsedQ[cat]=[];
+  let idx; do{ idx=Math.floor(Math.random()*pool.length);}while(offlineUsedQ[cat].includes(idx));
+  offlineUsedQ[cat].push(idx); return pool[idx];
+}
+
+function offlineAsk(sq,p){
+  const q=pickQ(sq.cat);
+  if(p.ai){
+    busy=true;
+    setTimeout(()=>{
+      const choice=Math.random()<0.8?q.a:Math.floor(Math.random()*q.o.length);
+      const correct=choice===q.a;
+      if(correct){ p.score+=sq.ch?35:20; log(`✅ ${p.name} 答對 +${sq.ch?35:20}`);}
+      else{ p.score=Math.max(0,p.score-10); log(`❌ ${p.name} 答錯 -10`);}
+      updatePanel();
+      offlineFinishTurn();
+    },1100);
+    return;
+  }
+  // 真人：顯示題目 Modal
+  openQuestion(sq,q,(choice)=>{
+    const correct=choice===q.a;
+    if(correct){ p.score+=sq.ch?35:20; log(`✅ 你答對 +${sq.ch?35:20}`);}
+    else{ p.score=Math.max(0,p.score-10); log(`❌ 你答錯 -10`);}
+    updatePanel();
+    if(offlineCheckWin()) return;
+    offlineFinishTurn();
+  });
+}
+
+function offlineCard(p,kind){
+  const deck=kind==="chance"?CHANCE:FATE;
+  const card=deck[Math.floor(Math.random()*deck.length)];
+  if(p.ai){
+    busy=true;
+    setTimeout(()=>{ offlineApplyCard(p,card); offlineFinishTurn(); },900);
+    return;
+  }
+  openCard(kind,card,()=>{
+    offlineApplyCard(p,card);
+    positionTokens();
+    updatePanel();
+    if(offlineCheckWin()) return;
+    offlineFinishTurn();
+  });
+}
+function offlineApplyCard(p,card){
+  const e=card.eff;
+  if(e.coins){ p.score=Math.max(0,p.score+e.coins); }
+  if(e.skip){ p.skip+=e.skip; }
+  if(e.move){ p.pos=((p.pos+e.move)%24+24)%24; }
+  log(`${p.name}：${card.t}`);
+}
+
+function offlineCheckWin(){
+  const w=players.find(p=>p.score>=target);
+  if(w){ gameOver=true; busy=true; declareWinner(w,true); return true; }
+  return false;
+}
+function offlineFinishTurn(){
+  turnCount++;
+  const maxTurns=players.length*8;
+  if(offlineCheckWin()) return;
+  if(turnCount>=maxTurns){
+    let best=players[0]; players.forEach(p=>{if(p.score>best.score)best=p;});
+    gameOver=true; busy=true; declareWinner(best,false); return;
+  }
+  turn=(turn+1)%players.length;
+  updatePanel();
+  busy=false;
+  maybeAI();
+}
+
+// ===== 聯機模式 =====
+function onlineCreate(){
+  const name=$("myName").value.trim()||"玩家甲";
+  connectWS(()=>{
+    ws.send(JSON.stringify({type:"create", id:myId, name, maxPlayers:4, target:200}));
+  });
+}
+function onlineJoin(){
+  const code=$("joinCode").value.trim().toUpperCase();
+  const name=$("myName").value.trim()||"玩家";
+  if(!code){ toast("請輸入邀請碼"); return; }
+  connectWS(()=>{
+    ws.send(JSON.stringify({type:"join", code, id:myId, name}));
+  });
+}
+function connectWS(onOpen){
+  const proto = location.protocol==="https:"?"wss":"ws";
+  const url = `${proto}://${location.host}`;
+  ws = new WebSocket(url);
+  ws.onopen = ()=>{ onOpen && onOpen(); };
+  ws.onmessage = (ev)=>{
+    let msg; try{ msg=JSON.parse(ev.data); }catch{ return; }
+    handleServer(msg);
+  };
+  ws.onclose = ()=>{ toast("連線已斷開"); };
+  ws.onerror = ()=>{ toast("無法連接伺服器"); };
+}
+
+function handleServer(msg){
+  if(msg.type==="error"){ toast(msg.text); return; }
+  if(msg.type==="sync"){
+    roomCode = msg.code;
+    players = msg.players;
+    target = msg.target;
+    turn = msg.turn||0;
+    turnCount = msg.turnCount||0;
+    gameOver = msg.gameOver;
+    $("gameWrap").style.display = msg.started ? "flex" : "none";
+
+    if(!msg.started){
+      // 大廳
+      show("lobbyScreen");
+      $("roomCode").textContent = msg.code;
+      const isHost = msg.host===myId;
+      $("roomHost").textContent = isHost ? "（你是房主）":"";
+      $("startBtn").style.display = isHost ? "block":"none";
+      const lp=$("lobbyPlayers"); lp.innerHTML="";
+      msg.players.forEach((p,i)=>{
+        const d=document.createElement("div"); d.className="lp";
+        d.innerHTML=`<span class="dot" style="background:${p.color}"></span>
+          <b>${p.name}</b>${p.ai?' <span class="pbadge">AI</span>':''}
+          ${msg.host===p.id?' 🛡':''}`;
+        lp.appendChild(d);
+      });
+      // 邀請碼也放網址列方便分享
+      try{ history.replaceState(null,"", "?room="+msg.code); }catch(e){}
+      return;
+    }
+    hide("lobbyScreen");
+    hide("modeScreen");
+    buildBoard();
+    positionTokens();
+    updatePanel();
+    if(msg.log) syncLog(msg.log);
+    // 處理待回應事件
+    if(msg.pendingEvent){ handlePending(msg.pendingEvent); }
+    else { busy=false; }
+    if(msg.gameOver){ busy=true; }
+  }
+}
+
+function handlePending(ev){
+  if(ev.kind==="question"){
+    if(ev.playerId===myId){
+      const sq = {ch:ev.isChallenge, cat:ev.cat};
+      const q = {q:ev.question, o:ev.options, a:ev.answer, ex:ev.explain};
+      openQuestion(sq,q,(choice)=>{
+        ws.send(JSON.stringify({type:"answer", choice}));
+      });
+    } else { busy=true; }
+  } else if(ev.kind==="card"){
+    if(ev.playerId===myId){
+      const card={t:ev.title, x:ev.text, eff:ev.eff};
+      openCard(ev.cardKind,card,()=>{ ws.send(JSON.stringify({type:"card_confirm"})); });
+    } else { busy=true; }
+  }
+}
+
+function fillAI(){
+  if(!ws) return;
+  ws.send(JSON.stringify({type:"fill_ai", id:myId}));
+}
+function startGame(){
+  if(!ws) return;
+  ws.send(JSON.stringify({type:"start", id:myId}));
+}
+function copyCode(){
+  const code=$("roomCode").textContent;
+  const link = location.origin + "/?room=" + code;
+  const txt = `河流與海岸大富翁！邀請碼：${code}\n連結：${link}`;
+  navigator.clipboard?.writeText(txt).then(()=>toast("已複製邀請碼與連結！"));
+}
+
+// ===== 擲骰（統一入口） =====
+function actRoll(){
+  if(gameOver||busy) return;
+  if(MODE==="offline"){
+    const p=players[turn];
+    if(p.ai) return;
+    busy=true; offlineRoll(p);
+  } else {
+    if(players[turn] && players[turn].id===myId){
+      ws.send(JSON.stringify({type:"roll"}));
+      busy=true;
+    }
+  }
+}
+
+// ===== Modal：題目 =====
+let _qResolve=null;
+function openQuestion(sq,q,onDone){
+  _qResolve=onDone;
+  $("qTitle").textContent = sq.ch?"⭐ 挑戰題":"📘 知識題";
+  $("qText").textContent = q.q;
+  const box=$("qOpts"); box.innerHTML="";
+  q.o.forEach((opt,oi)=>{
+    const b=document.createElement("button"); b.className="opt"; b.textContent=opt;
+    b.onclick=()=>onAnswer(b,oi,q); box.appendChild(b);
+  });
+  $("qExplain").className="explain"; $("qExplain").textContent="";
+  $("qNext").className="cardbtn";
+  show("qOverlay");
+}
+function onAnswer(btn,oi,q){
+  document.querySelectorAll("#qOpts .opt").forEach(b=>b.disabled=true);
+  document.querySelectorAll("#qOpts .opt")[q.a].classList.add("correct");
+  if(oi!==q.a) btn.classList.add("wrong");
+  $("qExplain").textContent=(oi===q.a?"✅ 答對！":"❌ 答錯。 ")+q.ex;
+  $("qExplain").className="explain show";
+  $("qNext").dataset.choice=oi;
+  $("qNext").className="cardbtn show";
+}
+function closeQuestion(){
+  hide("qOverlay");
+  const choice=parseInt($("qNext").dataset.choice);
+  const cb=_qResolve; _qResolve=null;
+  if(cb) cb(choice);
+}
+
+// ===== Modal：卡片 =====
+let _cResolve=null;
+function openCard(kind,card,onDone){
+  _cResolve=onDone;
+  $("cTag").textContent=kind==="chance"?"🎲 機會":"🔮 命運";
+  $("cTag").style.background=kind==="chance"?"#5b4b8a":"#8a4b6b";
+  $("cText").innerHTML=`【${card.t}】<br>${card.x}`;
+  show("cOverlay");
+}
+function confirmCard(){
+  hide("cOverlay");
+  const cb=_cResolve; _cResolve=null;
+  if(cb) cb();
+}
+
+// ===== 結算 =====
+function declareWinner(w,byTarget){
+  $("winText").textContent="🏆 "+w.name+" 勝出！";
+  let h='<div style="font-size:13px;line-height:1.7"><b>最終排名</b><br>';
+  players.slice().sort((a,b)=>b.score-a.score).forEach((p,r)=>{
+    h+=`${r+1}. ${p.name} — ${p.score} 地理幣<br>`;
+  });
+  h+=`<br>${byTarget?("率先達到 "+target+" 地理幣！"):("回合用盡，最高分獲勝！")}</div>`;
+  $("winDetail").innerHTML=h;
+  show("winOverlay");
+}
+
+// ===== 棋盤渲染 =====
+function buildBoard(){
+  const board=$("board"); board.innerHTML="";
+  BOARD.forEach(s=>{
+    const d=document.createElement("div"); d.id="sq-"+s.i;
+    let cls="sq";
+    if(s.type==="q"){ cls+=" "+s.cat+(s.ch?" challenge":""); }
+    else cls+=" "+s.type;
+    d.className=cls;
+    d.style.gridRow=(s.r+1); d.style.gridColumn=(s.c+1);
+    const ic = s.type==="q" ? (window.ICONS[s.icon]||"") : (window.SPECIAL_ICONS[s.icon]||"");
+    const nameHtml = (s.type==="go"||s.type==="chance"||s.type==="fate"||s.type==="rest")
+      ? `<span class="big">${s.name}</span>` : `<span class="nm">${s.name}</span>`;
+    d.innerHTML = `<div class="icon">${ic}</div>${nameHtml}`;
+    board.appendChild(d);
+  });
+  positionTokens();
+}
+
+function positionTokens(){
+  const board=$("board");
+  if(!board.firstChild) return;
+  const brect=board.getBoundingClientRect();
+  const layer=$("tokens"); layer.innerHTML="";
+  const offs=[[-9,-9],[9,-9],[-9,9],[9,9]];
+  players.forEach((p,i)=>{
+    const sq=BOARD[p.pos];
+    const el=$("sq-"+sq.i); if(!el) return;
+    const sr=el.getBoundingClientRect();
+    const cx=sr.left-brect.left+sr.width/2;
+    const cy=sr.top-brect.top+sr.height/2;
+    const t=document.createElement("div"); t.className="token";
+    t.style.background=p.color;
+    t.style.left=(cx-12+offs[i%4][0])+"px";
+    t.style.top=(cy-12+offs[i%4][1])+"px";
+    t.textContent=p.token;
+    layer.appendChild(t);
+  });
+}
+window.addEventListener("resize",positionTokens);
+
+// ===== 面板 / 日誌 =====
+function showDice(n){
+  const d=$("dice"); d.textContent="🎲";
+  d.style.transform="rotate("+(n*60+360)+"deg) scale(1.15)";
+  setTimeout(()=>{ d.textContent=n; d.style.transform="rotate(0deg) scale(1)"; },200);
+}
+function updatePanel(){
+  const box=$("players"); box.innerHTML="";
+  players.forEach((p,i)=>{
+    const row=document.createElement("div");
+    row.className="prow"+(i===turn&&!gameOver?" active":"")+(p.skip>0?"":"");
+    row.innerHTML=`<span class="dot" style="background:${p.color}"></span>
+      <span class="pname">${p.token} ${p.name}${p.ai?' · AI':''}${p.id===myId?' (你)':''}</span>
+      <span class="pscore">${p.score}</span>
+      ${p.skip>0?'<span class="pbadge">跳'+p.skip+'</span>':''}`;
+    box.appendChild(row);
+  });
+  const cur = players[turn];
+  $("metaInfo").innerHTML=`目標 <b>${target}</b> 幣 ｜ 回合 ${turnCount}/${players.length*8} ｜ 輪到：<b>${cur?cur.name:''}</b>`;
+  const myTurn = cur && cur.id===myId && !gameOver && !busy;
+  $("rollBtn").disabled = !myTurn;
+}
+function log(msg){
+  const l=$("log"); const d=document.createElement("div"); d.textContent="• "+msg;
+  l.appendChild(d); l.scrollTop=l.scrollHeight;
+}
+function syncLog(arr){
+  const l=$("log"); l.innerHTML="";
+  // 只顯示最近 30 條
+  arr.slice(-30).forEach(m=>{ const d=document.createElement("div"); d.textContent="• "+m; l.appendChild(d); });
+  l.scrollTop=l.scrollHeight;
+}
+function toggleRules(){
+  const b=$("rulesBox");
+  if(b.style.display==="none"){
+    b.style.display="block";
+    b.innerHTML=`<b>目標：</b>答題賺地理幣，達 <b>${target}</b> 或回合用盡最高分勝。<br>
+      <b>知識題</b>答對 +20；<b>挑戰題(★)</b>+35，答錯 -10；經過起點 +50；學院 +10。<br>
+      <b>機會/命運</b>：隨機獎懲。<br>
+      <b>聯機</b>：房主分享邀請碼，可補 AI 後開始。`;
+  } else b.style.display="none";
+}
+
+// 啟動時若網址帶 ?room= 預填邀請碼
+(function init(){
+  const p=new URLSearchParams(location.search);
+  const r=p.get("room");
+  if(r){ enterOnline(); $("joinCode").value=r.toUpperCase(); }
+})();
+
+</script>
+</body>
+</html>
