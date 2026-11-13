@@ -451,8 +451,7 @@ function enterOffline(){
   hide("modeScreen");
   setupOfflineGame();
 }
-
-  
+function enterOnline(){
   $("onlineForm").style.display="block";
   // 顯示伺服器位址（同頁 = 與網頁同 host）
   $("srvAddr").textContent = location.host || "同頁";
