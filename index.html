@@ -311,12 +311,11 @@ const ICONS = {
     <path d="M30 10 H44 V26 H30 Z" fill="#3a6e94"/>
     <path d="M18 22 Q24 18 30 18" fill="none" stroke="#d9b25a" stroke-width="6" stroke-linecap="round"/>
     <path d="M18 20 Q24 16 30 16" fill="none" stroke="#e8cf8a" stroke-width="2" opacity=".7"/></svg>`,
-  // 海積平原（平緩堆積平原）
-  marineplain: `<svg viewBox="0 0 48 48"><rect x="0" y="0" width="48" height="48" fill="#2c5f8a"/>
-    <path d="M0 30 H48 V34 H0 Z" fill="#7fa8c4"/>
-    <path d="M0 34 Q12 30 24 34 T48 34 V38 H0 Z" fill="#9fc0d8"/>
-    <path d="M0 38 H48 V48 H0 Z" fill="#b9a07a"/>
-    <path d="M6 42 H20 M28 43 H40" stroke="#8a7a5a" stroke-width="1.5" opacity=".7"/></svg>`,
+  // 海岸沙丘（風積沙丘）
+  coastaldune: `<svg viewBox="0 0 48 48"><rect x="0" y="0" width="48" height="48" fill="#2c5f8a"/>
+    <path d="M0 34 Q16 22 30 30 Q40 35 48 30 V48 H0 Z" fill="#d9b25a"/>
+    <path d="M0 34 Q16 22 30 30 Q40 35 48 30" fill="none" stroke="#e8cf8a" stroke-width="2" opacity=".7"/>
+    <path d="M0 40 Q14 34 26 40 Q38 44 48 40 V48 H0 Z" fill="#cdb08a"/></svg>`,
 };
 // 角落 / 特殊格圖示（emoji 造型）
 const SPECIAL_ICONS = {
@@ -358,7 +357,7 @@ const BOARD = [
   {i:20,r:2,c:6, type:"q", cat:"dep", d:2, name:"沙咀", icon:"spit"},
   {i:21,r:3,c:6, type:"q", cat:"dep", d:2, name:"連島沙洲", icon:"tombolo"},
   {i:22,r:4,c:6, type:"q", cat:"dep", d:3, ch:true, name:"潟湖", icon:"lagoon"},
-  {i:23,r:5,c:6, type:"q", cat:"dep", d:3, name:"海積平原", icon:"marineplain"},
+  {i:23,r:5,c:6, type:"q", cat:"dep", d:3, name:"海岸沙丘", icon:"coastaldune"},
 ];
 
 // 難度設定：AI 答對機率與得分
@@ -473,7 +472,7 @@ const Q = {
       {q:"連島沙洲（tombolo）連接的是？",o:["兩條河流","島嶼與大陸（或另一島）","兩個三角洲","海蝕崖與平台"],a:1,ex:"連島沙洲是堆積地貌，連接島嶼與大陸或另一島嶼。",past:true},
       {q:"有關『沿岸漂沙』與防波堤的關係，何者正確？",o:["防波堤會加強漂沙","防波堤改變水流，可使下游出現侵蝕","防波堤對漂沙無影響","只影響河口"],a:1,ex:"防波堤攔截沿岸漂沙，常使下游因泥沙減少而出現海岸侵蝕。"},
       {q:"維多利亞港屬於哪種海岸地形？",o:["河流上游峽谷","沉沒河谷（ria／淹沒河谷）","火山口湖","牛軛湖"],a:1,ex:"維多利亞港是沉沒河谷（ria）形成的天然良港，受潮汐影響。"},
-      {q:"有關『海積平原』的敘述，何者正確？",o:["由河流下蝕形成","由河流與海洋堆積泥沙、低平寬闊","坡度大、流速快","屬海蝕地貌"],a:1,ex:"海積平原由河流與海洋堆積泥沙而成，地形低平寬闊，常見於河口與海岸低地。"}
+      {q:"有關『海岸沙丘（coastal dune）』，何者正確？",o:["由河流下蝕形成","由強風將海灘沙粒吹積上岸而成","屬海蝕地貌","只出現於河口"],a:1,ex:"海岸沙丘由強風將海灘沙粒吹送上岸堆積而成，常見於植被稀少的海岸。"}
     ]
   }
 };
