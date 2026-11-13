@@ -544,8 +544,8 @@ function offlineFinishTurn(){
     gameOver=true; busy=true; declareWinner(best,false); return;
   }
   turn=(turn+1)%players.length;
-  updatePanel();
   busy=false;
+  updatePanel();
   maybeAI();
 }
 
