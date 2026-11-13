@@ -168,6 +168,7 @@ h1{color:#fff; text-align:center; margin:6px 0 2px; font-size:clamp(20px,3vw,30p
 <h1>🌊 河流與海岸大富翁</h1>
 <p class="subtitle">DSE 地理「河流與海岸」 · 你 vs 3 個 AI 地理學家</p>
 
+<!-- 模式選擇 -->
 <!-- 遊戲主畫面 -->
 <div class="wrap" id="gameWrap">
   <div id="boardArea">
@@ -212,7 +213,7 @@ h1{color:#fff; text-align:center; margin:6px 0 2px; font-size:clamp(20px,3vw,30p
   <div class="card">
     <div class="winner" id="winText"></div>
     <div id="winDetail"></div>
-    <button class="cardbtn show" onclick="backToMode()">再玩一次 🔄</button>
+    <button class="cardbtn show" onclick="setupOfflineGame()">再玩一次 🔄</button>
   </div>
 </div>
 <!-- 提示 -->
@@ -418,8 +419,8 @@ function enterOnline(){
 function backToMode(){
   hide("winOverlay"); hide("lobbyScreen");
   if(ws){ try{ws.close();}catch(e){} ws=null; }
-  // 單機版：直接重新開始
-  setupOfflineGame();
+  $("gameWrap").style.display="none";
+  show("modeScreen");
 }
 function exitGame(){
   if(MODE==="online" && ws){ ws.send(JSON.stringify({type:"restart"})); }
@@ -808,7 +809,7 @@ function toggleRules(){
   } else b.style.display="none";
 }
 
-// 啟動時直接進入單機對局（無需選擇模式）
+// 啟動時若網址帶 ?room= 預填邀請碼
 (function init(){
   setupOfflineGame();
 })();
