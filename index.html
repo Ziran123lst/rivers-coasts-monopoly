@@ -166,48 +166,7 @@ h1{color:#fff; text-align:center; margin:6px 0 2px; font-size:clamp(20px,3vw,30p
 <body>
 <div id="bg"></div>
 <h1>🌊 河流與海岸大富翁</h1>
-<p class="subtitle">DSE 地理「河流與海岸」 · 單機對 AI ｜ 聯機邀請碼對戰</p>
-
-<!-- 模式選擇 -->
-<div class="overlay show" id="modeScreen">
-  <div class="card">
-    <h3>🎮 選擇模式</h3>
-    <div class="mode-grid">
-      <button class="mode-btn" onclick="enterOffline()">
-        <span class="mi">💻</span><b>單機模式</b><small>你 vs 3 個 AI 地理學家</small>
-      </button>
-      <button class="mode-btn" onclick="enterOnline()">
-        <span class="mi">🌐</span><b>聯機模式</b><small>邀請碼 3/4 人真連線</small>
-      </button>
-    </div>
-    <div id="onlineForm" class="online-form" style="display:none">
-      <div class="field"><label>你的名字</label><input id="myName" placeholder="玩家甲" value="玩家甲"></div>
-      <div class="btn-row">
-        <button class="primary" onclick="onlineCreate()">➕ 建立房間</button>
-      </div>
-      <div class="field"><label>邀請碼</label><input id="joinCode" placeholder="輸入 5 位邀請碼"></div>
-      <div class="btn-row">
-        <button class="primary" onclick="onlineJoin()">🔗 加入房間</button>
-      </div>
-      <p class="hint" id="netHint">伺服器位址：<span id="srvAddr">同頁</span></p>
-    </div>
-  </div>
-</div>
-
-<!-- 房間大廳 -->
-<div class="overlay" id="lobbyScreen">
-  <div class="card">
-    <h3>🏠 房間大廳</h3>
-    <p class="room-code">邀請碼：<b id="roomCode">—</b>　<span id="roomHost"></span></p>
-    <p class="hint">把邀請碼分享給朋友，或按「補 AI」開始。</p>
-    <div id="lobbyPlayers" class="lobby-players"></div>
-    <div class="btn-row" style="margin-top:12px">
-      <button class="ghost" onclick="copyCode()">📋 複製邀請碼</button>
-      <button class="ghost" onclick="fillAI()">🤖 補充 AI</button>
-      <button class="primary" id="startBtn" onclick="startGame()">▶ 開始對局</button>
-    </div>
-  </div>
-</div>
+<p class="subtitle">DSE 地理「河流與海岸」 · 你 vs 3 個 AI 地理學家</p>
 
 <!-- 遊戲主畫面 -->
 <div class="wrap" id="gameWrap">
@@ -443,8 +402,8 @@ let offlineUsedQ = {};
 // ===== UI 工具 =====
 function $(id){return document.getElementById(id);}
 function toast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove("show"),2200); }
-function show(id){ $(id).classList.add("show"); }
-function hide(id){ $(id).classList.remove("show"); }
+function show(id){ const e=$(id); if(e) e.classList.add("show"); }
+function hide(id){ const e=$(id); if(e) e.classList.remove("show"); }
 
 function enterOffline(){
   MODE="offline";
@@ -459,8 +418,8 @@ function enterOnline(){
 function backToMode(){
   hide("winOverlay"); hide("lobbyScreen");
   if(ws){ try{ws.close();}catch(e){} ws=null; }
-  $("gameWrap").style.display="none";
-  show("modeScreen");
+  // 單機版：直接重新開始
+  setupOfflineGame();
 }
 function exitGame(){
   if(MODE==="online" && ws){ ws.send(JSON.stringify({type:"restart"})); }
@@ -469,6 +428,7 @@ function exitGame(){
 
 // ===== 單機模式 =====
 function setupOfflineGame(){
+  MODE="offline";
   const myName = "你";
   players = [];
   players.push({id:myId, name:myName, color:PALETTE[0], token:TOKENS[0], pos:0, score:0, skip:0, ai:false});
@@ -848,11 +808,9 @@ function toggleRules(){
   } else b.style.display="none";
 }
 
-// 啟動時若網址帶 ?room= 預填邀請碼
+// 啟動時直接進入單機對局（無需選擇模式）
 (function init(){
-  const p=new URLSearchParams(location.search);
-  const r=p.get("room");
-  if(r){ enterOnline(); $("joinCode").value=r.toUpperCase(); }
+  setupOfflineGame();
 })();
 
 </script>
